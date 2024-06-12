@@ -52,6 +52,9 @@ boot_page_table1:
 .global _start
 .type _start, @function
 _start:
+
+	call load_GDT_entries
+
 	# Phys addr of boot_page_table1
 	movl $(boot_page_table1 - 0xC0000000), %edi
 
@@ -59,7 +62,6 @@ _start:
 	movl $0, %esi
 	# Map 1024 pages, because the 1024th will be something else?
 	movl $1023, %ecx
-
 1:
 	# Only map the kernel
 	cmpl $_kernel_start, %esi
@@ -113,6 +115,11 @@ _start:
 	movl $(stack_top), %esp # Stack is 16 KiB long?
 
 	# Transfer control to the main kernel
+	call load_GDT_entries
+		
+	ljmp $0x8, $lab
+lab:
+	call flush_gdt
 	call kernel_main
 
 	# If there is an unexpected return, hang on

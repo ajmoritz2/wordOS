@@ -1,6 +1,74 @@
 #include <stddef.h>
+#include <stdint.h>
+#include "interupts.c"
 
 #define PORT 0x3f8
+
+// Start with creating the GDT I think
+uint64_t gdt_entries[5]; // I think we keep this out of the function?
+uint64_t num_gdt_entries = 5;
+
+
+struct __attribute__((packed, aligned(4))) GDTR
+{
+	uint64_t limit;
+	uint64_t address;
+};
+
+void load_GDT_entries (void)
+{
+	// Null descriptor
+	gdt_entries[0] = 0;
+
+	// Kernel code selector
+	uint64_t kernel_code = 0;
+	kernel_code |= 0b1011 << 8;
+	kernel_code |= 1 << 12;
+	kernel_code |= 0 << 13;
+	kernel_code |= 1 << 15;
+
+	gdt_entries[1] = kernel_code << 32;
+
+	// Kernel data selector?
+	uint64_t kernel_data = 0;
+	kernel_data |= 0b0011 << 8;
+	kernel_data |= 1 << 12;
+	kernel_data |= 0 << 13;
+	kernel_data |= 1 << 15;
+	gdt_entries[2] = kernel_data << 32;
+	
+	// User code selector
+	uint64_t user_code = kernel_code | (3 << 13);
+	gdt_entries[3] = user_code;
+
+	uint64_t user_data = kernel_data | (3 << 13);
+	gdt_entries[4] = user_data;
+	
+	struct GDTR word_gdtr = 
+	{
+		num_gdt_entries * sizeof(uint64_t) - 1,
+		(uint64_t) *gdt_entries
+	};
+
+	asm("lgdt %0" : : "m"(word_gdtr));
+}
+
+void flush_gdt()
+{
+	asm volatile("\
+        mov $0x10, %ax \n\
+        mov %ax, %ds \n\
+        mov %ax, %es \n\
+        mov %ax, %fs \n\
+        mov %ax, %gs \n\
+        mov %ax, %ss \n\
+        \n\
+	pop %edi \n\
+	push $0x8 \n\
+	push %edi \n\
+        ret \n\
+	");
+}
 
 extern inline unsigned char inportb (int portnum)
 {
@@ -59,6 +127,11 @@ void log_integer_to_serial (unsigned int number) {
 	log_to_serial(final);
 }
 
-void kernel_main() {
-	log_integer_to_serial(46328);
+
+// MAIN SECTION OF KERNEL
+
+void kernel_main() {	
+	testFile();
+	log_to_serial("Entries hopefully loaded here!");
+	
 }
