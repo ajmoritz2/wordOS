@@ -40,7 +40,7 @@ stack_top:
 
 
 .section .bss, "aw", @nobits
-	.align 4096 
+	.align 4096 # 4KiB aligned 
 boot_page_dir:
 	.skip 4096
 boot_page_table1:
@@ -52,16 +52,14 @@ boot_page_table1:
 .global _start
 .type _start, @function
 _start:
-
-	call load_GDT_entries
-
-	# Phys addr of boot_page_table1
+	# Phys addr of boot_page_table1 is boot_page_table1 - 0xC0000000
+	# 0xC0000000 is the address of the kernel because it is a higher half
 	movl $(boot_page_table1 - 0xC0000000), %edi
 
 	# First addr to map is addr 0
 	movl $0, %esi
-	# Map 1024 pages, because the 1024th will be something else?
-	movl $1023, %ecx
+	# Map 1024 pages
+	movl $1024, %ecx
 1:
 	# Only map the kernel
 	cmpl $_kernel_start, %esi
@@ -84,8 +82,7 @@ _start:
 	loop 1b;
 
 3:
-	# Gonna try to skip the VGA mapping
-	movl $(boot_page_table1 - BOOTLOC + 0x003), boot_page_dir - BOOTLOC
+	movl $(boot_page_table1 - BOOTLOC + 0x003), boot_page_dir - BOOTLOC + 0
 	movl $(boot_page_table1 - BOOTLOC + 0x003), boot_page_dir - BOOTLOC + 768 * 4
 
 	# Set cr3 o the correct addr
@@ -94,7 +91,7 @@ _start:
 
 	# Enable paging and the write-protect bit
 	movl %cr0, %ecx
-	orl $0x80010000, %ecx
+	orl $0x80000001, %ecx
 	movl %ecx, %cr0
 
 	# Jump to higher half w/ absolute jump
@@ -115,16 +112,9 @@ _start:
 	movl $(stack_top), %esp # Stack is 16 KiB long?
 
 	# Transfer control to the main kernel
-	call load_GDT_entries
-		
-	ljmp $0x8, $lab
-lab:
-	call flush_gdt
 	call kernel_main
 
 	# If there is an unexpected return, hang on
 	cli
 1:	hlt
 	jmp 1b
-
-
