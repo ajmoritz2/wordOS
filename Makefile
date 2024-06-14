@@ -11,15 +11,16 @@ LDFILE?=linker.ld
 KERNELC?=kernel.c
 
 OBJS=\
-     $(ARCHDIR)/boot.o \
+     $(ARCHDIR)/bootNP.o \
+     $(KERNELDIR)/gdt.o \
      $(KERNELDIR)/kernel.o
 
 .PHONY: all
 
 all: word.bin
 
-word.bin: $(OBJS) $(ARCHDIR)/linker.ld
-	$(CC) -T $(ARCHDIR)/linker.ld -o $@ $(CFLAGS) -nostdlib $(OBJS) -lgcc
+word.bin: $(OBJS) $(ARCHDIR)/linkerNP.ld
+	$(CC) -T $(ARCHDIR)/linkerNP.ld -o $@ $(CFLAGS) -nostdlib $(OBJS) -lgcc
 	grub-file --is-x86-multiboot2 word.bin
 
 %.s: %.o

@@ -1,20 +1,8 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include "interupts.h"
+#include "kernel.h"
 
-typedef struct 
-{
-	uint16_t address_low;
-	uint16_t selector;
-	uint8_t reserved;
-	uint8_t flags;
-	uint16_t address_high;
-} __attribute__((packed)) idt_entry;
-
-typedef struct
-{
-	uint16_t limit;
-	uint32_t base;
-} __attribute__((packed)) idtr_t;
 
 __attribute__((aligned(0x1000)))
 static idt_entry idt[256];
@@ -36,10 +24,6 @@ void idt_set_descriptor(uint8_t vector, void* isr, uint8_t flags)
 	desc->reserved = 0;
 }
 
-void testFile() {
-
-}
-
 void init_idt() 
 {
 	idtr.base = (uintptr_t)&idt[0];
@@ -50,6 +34,14 @@ void init_idt()
 		vectors[vector] = true;
 	}
 
-	__asm__ volatile ("lidt %0" : : "m"(idtr)); // Loading new IDT
-	__asm__ volatile ("sti"); // Interupt flag
+	log_to_serial("Loaded IDT");
+	asm volatile ("lidt %0" : : "m"(idtr)); // Loading new IDT
+	asm volatile ("sti"); // Interupt flag
+}
+
+__attribute__((noreturn))
+void exception_handler() 
+{
+	log_to_serial("INTERUPT ACHIEVED"); 
+	asm volatile("cli; hlt");
 }

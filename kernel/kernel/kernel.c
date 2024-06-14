@@ -1,6 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "interupts.h"
+#include "gdt.h"
 #include "kernel.h"
 
 extern inline unsigned char inportb (int portnum)
@@ -63,7 +64,12 @@ void log_integer_to_serial (unsigned int number) {
 
 // MAIN SECTION OF KERNEL
 
-void kernel_main() {	
-	log_to_serial("Entries hopefully loaded here!");
+void kernel_main(uintptr_t *entry_pd) 
+{
+	gdt_install();
+	init_serial();
+	asm volatile("sti");
+	log_to_serial("Entries hopefully loaded here!\n");
+	log_to_serial("Maybe this will help me eyes.");
 	//asm volatile("int $0x3");	
 }
