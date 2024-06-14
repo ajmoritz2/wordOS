@@ -67,9 +67,10 @@ void log_integer_to_serial (unsigned int number) {
 void kernel_main(uintptr_t *entry_pd) 
 {
 	gdt_install();
+	init_idt();
 	init_serial();
-	asm volatile("sti");
 	log_to_serial("Entries hopefully loaded here!\n");
-	log_to_serial("Maybe this will help me eyes.");
-	//asm volatile("int $0x3");	
+	log_to_serial("Maybe this will help me eyes.\n");
+	asm("int $4");
+	log_to_serial("Did I make it here? \n");
 }

@@ -13,6 +13,8 @@ KERNELC?=kernel.c
 OBJS=\
      $(ARCHDIR)/bootNP.o \
      $(KERNELDIR)/gdt.o \
+     $(KERNELDIR)/idtStub.o \
+     $(KERNELDIR)/interupts.o \
      $(KERNELDIR)/kernel.o
 
 .PHONY: all

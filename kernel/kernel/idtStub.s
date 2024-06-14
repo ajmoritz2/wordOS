@@ -1,16 +1,65 @@
+.section .text
+
 .macro isr_err_stub num
+.global isr_stub_\num
+.type isr_stub_\num, @function
 isr_stub_\num:
-	call exception_handler
-	iret
+	cli
+	pushl $\num
+	jmp isr_frame_as
 .endm
 
 .macro isr_no_err_stub num
+.global isr_stub_\num
+.type isr_stub\num, @function
 isr_stub_\num:
-	call exception_handler
-	iret
+	cli
+	pushl $0
+	pushl $\num
+	jmp isr_frame_as
 .endm
 
-.extern exception_handler
+isr_frame_as:
+	pushl %eax
+	pushl %ebx
+	pushl %ecx
+	pushl %edx
+	pushl %esi
+	pushl %edi
+
+	movl %cr0, %eax
+	pushl %eax
+	movl %cr2, %eax
+	pushl %eax
+	movl %cr3, %eax
+	pushl %eax
+	movl %cr4, %eax
+	pushl %eax
+	
+	pushl %esp
+	cld
+	call exception_handler
+	
+	popl %eax
+	movl %eax, %cr4
+	popl %eax
+	movl %eax, %cr3
+	popl %eax
+	movl %eax, %cr2
+	popl %eax
+	movl %eax, %cr0
+	popl %eax
+
+	popl %edi
+	popl %esi
+	popl %edx
+	popl %ecx
+	popl %ebx
+	popl %eax
+	addl $8, %esp
+
+	iret
+
 isr_no_err_stub 0
 isr_no_err_stub 1
 isr_no_err_stub 2
