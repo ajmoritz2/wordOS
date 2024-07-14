@@ -34,45 +34,45 @@
 00000000000i[      ]   Sound support: SB16 ES1370
 00000000000i[      ]   USB support: UHCI OHCI EHCI xHCI
 00000000000i[      ]   VGA extension support: vbe cirrus voodoo
-00000000000i[MEM0  ] allocated memory at 0x7f1174504010. after alignment, vector=0x7f1174505000
+00000000000i[MEM0  ] allocated memory at 0x7f9d0b517010. after alignment, vector=0x7f9d0b518000
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/usr/share/bochs/BIOS-bochs-latest')
-00000000000i[      ] lt_dlhandle is 0x5586ca164fa0
+00000000000i[      ] lt_dlhandle is 0x55e9f9572fa0
 00000000000i[PLUGIN] loaded plugin libbx_hdimage.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7a5d20
+00000000000i[      ] lt_dlhandle is 0x55e9f9bb3d20
 00000000000i[PLUGIN] loaded plugin libbx_soundalsa.so
 00000000000i[WAVOUT] ALSA: opened default PCM output device
 00000000000i[WAVOUT] changed sample rate to 44101
-00000000000i[      ] lt_dlhandle is 0x5586ca7c02f0
+00000000000i[      ] lt_dlhandle is 0x55e9f9bce2f0
 00000000000i[PLUGIN] loaded plugin libbx_pci.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7a68d0
+00000000000i[      ] lt_dlhandle is 0x55e9f9bb48d0
 00000000000i[PLUGIN] loaded plugin libbx_pci2isa.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7cdeb0
+00000000000i[      ] lt_dlhandle is 0x55e9f9bdbeb0
 00000000000i[PLUGIN] loaded plugin libbx_usb_uhci.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7d0570
+00000000000i[      ] lt_dlhandle is 0x55e9f9bde570
 00000000000i[PLUGIN] loaded plugin libbx_acpi.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7d0da0
+00000000000i[      ] lt_dlhandle is 0x55e9f9bdeda0
 00000000000i[PLUGIN] loaded plugin libbx_hpet.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7d1c10
+00000000000i[      ] lt_dlhandle is 0x55e9f9bdfc10
 00000000000i[PLUGIN] loaded plugin libbx_cmos.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7d2570
+00000000000i[      ] lt_dlhandle is 0x55e9f9be0570
 00000000000i[PLUGIN] loaded plugin libbx_dma.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7d2fc0
+00000000000i[      ] lt_dlhandle is 0x55e9f9be0fc0
 00000000000i[PLUGIN] loaded plugin libbx_pic.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7d3820
+00000000000i[      ] lt_dlhandle is 0x55e9f9be1820
 00000000000i[PLUGIN] loaded plugin libbx_pit.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7d4220
+00000000000i[      ] lt_dlhandle is 0x55e9f9be2220
 00000000000i[PLUGIN] loaded plugin libbx_vga.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7d4a80
+00000000000i[      ] lt_dlhandle is 0x55e9f9be2a80
 00000000000i[PLUGIN] loaded plugin libbx_floppy.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7d5630
+00000000000i[      ] lt_dlhandle is 0x55e9f9be3630
 00000000000i[PLUGIN] loaded plugin libbx_ioapic.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7d5e30
+00000000000i[      ] lt_dlhandle is 0x55e9f9be3e30
 00000000000i[PLUGIN] loaded plugin libbx_keyboard.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7d6600
+00000000000i[      ] lt_dlhandle is 0x55e9f9be4600
 00000000000i[PLUGIN] loaded plugin libbx_harddrv.so
-00000000000i[      ] lt_dlhandle is 0x5586ca7d8860
+00000000000i[      ] lt_dlhandle is 0x55e9f9be6860
 00000000000i[PLUGIN] loaded plugin libbx_pci_ide.so
 00000000000i[PLUGIN] init_dev of 'pci' plugin device by virtual method
 00000000000i[DEV   ] i440FX PMC present at device 0, function 0
@@ -80,7 +80,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Thu Jun 13 23:20:39 2024 (time0=1718335239)
+00000000000i[CMOS  ] Setting initial clock to: Fri Jul 12 00:44:11 2024 (time0=1720759451)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -113,7 +113,7 @@
 00000000000i[KBD   ] will paste characters every 400 keyboard ticks
 00000000000i[PLUGIN] init_dev of 'harddrv' plugin device by virtual method
 00000000000i[HD    ] HD on ata0-0: 'wordos.iso', 'flat' mode
-00000000000i[IMG   ] hd_size: 11544576
+00000000000i[IMG   ] hd_size: 11548672
 00000000000i[HD    ] ata0-0: autodetect geometry: CHS=22/16/63 (sector size=512)
 00000000000i[HD    ] ata0-0: extra data outside of CHS address range
 00000000000i[HD    ] translation on ata0-0 set to 'none'
@@ -256,7 +256,7 @@
 00001384280i[ACPI  ] new PM base address: 0xb000
 00001384294i[ACPI  ] new SM base address: 0xb100
 00001384321i[PCI   ] setting SMRAM control register to 0x4a
-00001524670i[XGUI  ] charmap update. Font is 9 x 16
+00001516600i[XGUI  ] charmap update. Font is 9 x 16
 00001613997i[CPU0  ] Enter to System Management Mode
 00001613997i[CPU0  ] enter_system_management_mode: temporary disable VMX while in SMM mode
 00001614007i[CPU0  ] RSM: Resuming from System Management Mode
@@ -272,110 +272,130 @@
 00002009713i[BXVGA ] VBE known Display Interface b0c5
 00002012356i[VBIOS ] VBE Bios $Id: vbe.c 228 2020-01-02 23:09:02Z vruppert $
 00002361909i[BIOS  ] ata0-0: PCHS=22/16/63 translation=none LCHS=22/16/63
-00003982660i[XGUI  ] charmap update. Font is 9 x 16
+00004062140i[XGUI  ] charmap update. Font is 9 x 16
 00005808857i[BIOS  ] IDE time out
 00035779896i[BIOS  ] Booting from 0000:7c00
-00044218736e[WAVOUT] ALSA: underrun occurred
-00109811204i[BXVGA ] VBE set bpp (32)
-00109811226i[BXVGA ] VBE set xres (640)
-00109811265i[BXVGA ] VBE set yres (480)
-00109811303i[BXVGA ] VBE enabling x 640, y 480, bpp 32, 1228800 bytes visible
-00113138032e[SER   ] com1: write to tx hold register when not empty
-00113138055e[SER   ] com1: write to tx hold register when not empty
-00113138078e[SER   ] com1: write to tx hold register when not empty
-00113138101e[SER   ] com1: write to tx hold register when not empty
-00113138124e[SER   ] com1: write to tx hold register when not empty
-00113139332e[SER   ] com1: write to tx hold register when not empty
-00113139355e[SER   ] com1: write to tx hold register when not empty
-00113139378e[SER   ] com1: write to tx hold register when not empty
-00113139401e[SER   ] com1: write to tx hold register when not empty
-00113139424e[SER   ] com1: write to tx hold register when not empty
-00113139447e[SER   ] com1: write to tx hold register when not empty
-00113139470e[SER   ] com1: write to tx hold register when not empty
-00113139493e[SER   ] com1: write to tx hold register when not empty
-00113139516e[SER   ] com1: write to tx hold register when not empty
-00113139539e[SER   ] com1: write to tx hold register when not empty
-00113139648i[SER   ] com1: FIFO enabled
-00113140133e[SER   ] com1: transmit FIFO overflow
-00113140156e[SER   ] com1: transmit FIFO overflow
-00113140179e[SER   ] com1: transmit FIFO overflow
-00113140202e[SER   ] com1: transmit FIFO overflow
-00113140225e[SER   ] com1: transmit FIFO overflow
-00113140248e[SER   ] com1: transmit FIFO overflow
-00113140271e[SER   ] com1: transmit FIFO overflow
-00113140294e[SER   ] com1: transmit FIFO overflow
-00113140317e[SER   ] com1: transmit FIFO overflow
-00113140340e[SER   ] com1: transmit FIFO overflow
-00113140363e[SER   ] com1: transmit FIFO overflow
-00113140386e[SER   ] com1: transmit FIFO overflow
-00113140409e[SER   ] com1: transmit FIFO overflow
-00113140432e[SER   ] com1: transmit FIFO overflow
-00113140472e[SER   ] com1: transmit FIFO overflow
-00113140495e[SER   ] com1: transmit FIFO overflow
-00113140518e[SER   ] com1: transmit FIFO overflow
-00113140541e[SER   ] com1: transmit FIFO overflow
-00113140564e[SER   ] com1: transmit FIFO overflow
-00113140587e[SER   ] com1: transmit FIFO overflow
-00113140610e[SER   ] com1: transmit FIFO overflow
-00113140633e[SER   ] com1: transmit FIFO overflow
-00113140656e[SER   ] com1: transmit FIFO overflow
-00113140679e[SER   ] com1: transmit FIFO overflow
-00113140702e[SER   ] com1: transmit FIFO overflow
-00113140725e[SER   ] com1: transmit FIFO overflow
-00113140748e[SER   ] com1: transmit FIFO overflow
-00113140771e[SER   ] com1: transmit FIFO overflow
-00113140794e[SER   ] com1: transmit FIFO overflow
-00113140817e[SER   ] com1: transmit FIFO overflow
-00113140840e[SER   ] com1: transmit FIFO overflow
-00113140863e[SER   ] com1: transmit FIFO overflow
-00113140886e[SER   ] com1: transmit FIFO overflow
-00113140909e[SER   ] com1: transmit FIFO overflow
-00113140932e[SER   ] com1: transmit FIFO overflow
-00113140955e[SER   ] com1: transmit FIFO overflow
-00113140978e[SER   ] com1: transmit FIFO overflow
-00113141001e[SER   ] com1: transmit FIFO overflow
-00113141024e[SER   ] com1: transmit FIFO overflow
-00113141047e[SER   ] com1: transmit FIFO overflow
-00113141070e[SER   ] com1: transmit FIFO overflow
-00113141093e[SER   ] com1: transmit FIFO overflow
-00113141116e[SER   ] com1: transmit FIFO overflow
-00113141139e[SER   ] com1: transmit FIFO overflow
-00113141204e[SER   ] com1: transmit FIFO overflow
-00113141227e[SER   ] com1: transmit FIFO overflow
-00113141250e[SER   ] com1: transmit FIFO overflow
-00113141273e[SER   ] com1: transmit FIFO overflow
-00113141296e[SER   ] com1: transmit FIFO overflow
-00113141319e[SER   ] com1: transmit FIFO overflow
-00113141342e[SER   ] com1: transmit FIFO overflow
-00113141365e[SER   ] com1: transmit FIFO overflow
-00113141388e[SER   ] com1: transmit FIFO overflow
-00113141411e[SER   ] com1: transmit FIFO overflow
-00113141434e[SER   ] com1: transmit FIFO overflow
-00113141457e[SER   ] com1: transmit FIFO overflow
-00113141480e[SER   ] com1: transmit FIFO overflow
-00113141503e[SER   ] com1: transmit FIFO overflow
-00113141526e[SER   ] com1: transmit FIFO overflow
-00113141549e[SER   ] com1: transmit FIFO overflow
-00113141572e[SER   ] com1: transmit FIFO overflow
-00113141589i[CPU0  ] WARNING: HLT instruction with IF=0!
-08501340000p[XGUI  ] >>PANIC<< POWER button turned off.
-08501340000i[CPU0  ] CPU is in protected mode (halted)
-08501340000i[CPU0  ] CS.mode = 32 bit
-08501340000i[CPU0  ] SS.mode = 32 bit
-08501340000i[CPU0  ] EFER   = 0x00000000
-08501340000i[CPU0  ] | EAX=00000000  EBX=00108020  ECX=0007fe97  EDX=000003f8
-08501340000i[CPU0  ] | ESP=0007fea0  EBP=0007fea8  ESI=00000000  EDI=00000000
-08501340000i[CPU0  ] | IOPL=0 ID vip vif ac vm rf nt of df if tf sf zf af PF cf
-08501340000i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
-08501340000i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 0fffffff 1 1
-08501340000i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 0fffffff 1 1
-08501340000i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 0fffffff 1 1
-08501340000i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 0fffffff 1 1
-08501340000i[CPU0  ] |  FS:0010( 0002| 0|  0) 00000000 0fffffff 1 1
-08501340000i[CPU0  ] |  GS:0010( 0002| 0|  0) 00000000 0fffffff 1 1
-08501340000i[CPU0  ] | EIP=001015bc (001015bc)
-08501340000i[CPU0  ] | CR0=0x60000011 CR2=0x00000000
-08501340000i[CPU0  ] | CR3=0x00000000 CR4=0x00000000
-08501340000i[CMOS  ] Last time is 1718336089 (Thu Jun 13 23:34:49 2024)
-08501340000i[XGUI  ] Exit
-08501340000i[SIM   ] quit_sim called with exit code 1
+00044823874e[WAVOUT] ALSA: underrun occurred
+00113582653i[BXVGA ] VBE set bpp (32)
+00113582675i[BXVGA ] VBE set xres (640)
+00113582714i[BXVGA ] VBE set yres (480)
+00113582752i[BXVGA ] VBE enabling x 640, y 480, bpp 32, 1228800 bytes visible
+00116935267e[SER   ] com1: write to tx hold register when not empty
+00116935290e[SER   ] com1: write to tx hold register when not empty
+00116935313e[SER   ] com1: write to tx hold register when not empty
+00116935336e[SER   ] com1: write to tx hold register when not empty
+00116935359e[SER   ] com1: write to tx hold register when not empty
+00116935382e[SER   ] com1: write to tx hold register when not empty
+00116935405e[SER   ] com1: write to tx hold register when not empty
+00116935428e[SER   ] com1: write to tx hold register when not empty
+00116935457e[CPU0  ] branch_far: RIP > limit
+00116935457e[CPU0  ] interrupt(): vector must be within IDT table limits, IDT.limit = 0x0
+00116935457e[CPU0  ] interrupt(): vector must be within IDT table limits, IDT.limit = 0x0
+00116935457i[CPU0  ] CPU is in protected mode (active)
+00116935457i[CPU0  ] CS.mode = 32 bit
+00116935457i[CPU0  ] SS.mode = 32 bit
+00116935457i[CPU0  ] EFER   = 0x00000000
+00116935457i[CPU0  ] | EAX=00000010  EBX=00102110  ECX=c010d7d9  EDX=000003f8
+00116935457i[CPU0  ] | ESP=c010d81e  EBP=c010d82a  ESI=0010e000  EDI=00105438
+00116935457i[CPU0  ] | IOPL=0 ID vip vif ac vm RF nt of df if tf SF zf af PF cf
+00116935457i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00116935457i[CPU0  ] |  CS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+00116935457i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 0fffffff 1 1
+00116935457i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 0fffffff 1 1
+00116935457i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 0fffffff 1 1
+00116935457i[CPU0  ] |  FS:0010( 0002| 0|  0) 00000000 0fffffff 1 1
+00116935457i[CPU0  ] |  GS:0010( 0002| 0|  0) 00000000 0fffffff 1 1
+00116935457i[CPU0  ] | EIP=c0101055 (c0101055)
+00116935457i[CPU0  ] | CR0=0xe0000011 CR2=0x00000000
+00116935457i[CPU0  ] | CR3=0x00104000 CR4=0x00000000
+00116935457e[CPU0  ] exception(): 3rd (13) exception with no resolution, shutdown status is 00h, resetting
+00116935457i[SYS   ] bx_pc_system_c::Reset(HARDWARE) called
+00116935457i[CPU0  ] cpu hardware reset
+00116935457i[APIC0 ] allocate APIC id=0 (MMIO enabled) to 0x0000fee00000
+00116935457i[CPU0  ] CPU[0] is the bootstrap processor
+00116935457i[CPU0  ] CPUID[0x00000000]: 00000005 756e6547 6c65746e 49656e69
+00116935457i[CPU0  ] CPUID[0x00000001]: 00000633 00010800 00002028 1fcbfbff
+00116935457i[CPU0  ] CPUID[0x00000002]: 00410601 00000000 00000000 00000000
+00116935457i[CPU0  ] CPUID[0x00000003]: 00000000 00000000 00000000 00000000
+00116935457i[CPU0  ] CPUID[0x00000004]: 00000000 00000000 00000000 00000000
+00116935457i[CPU0  ] CPUID[0x00000005]: 00000040 00000040 00000003 00000020
+00116935457i[CPU0  ] CPUID[0x80000000]: 80000008 00000000 00000000 00000000
+00116935457i[CPU0  ] CPUID[0x80000001]: 00000000 00000000 00000101 2a100000
+00116935457i[CPU0  ] CPUID[0x80000002]: 20202020 20202020 20202020 6e492020
+00116935457i[CPU0  ] CPUID[0x80000003]: 286c6574 50202952 69746e65 52286d75
+00116935457i[CPU0  ] CPUID[0x80000004]: 20342029 20555043 20202020 00202020
+00116935457i[CPU0  ] CPUID[0x80000005]: 01ff01ff 01ff01ff 40020140 40020140
+00116935457i[CPU0  ] CPUID[0x80000006]: 00000000 42004200 02008140 00000000
+00116935457i[CPU0  ] CPUID[0x80000007]: 00000000 00000000 00000000 00000000
+00116935457i[CPU0  ] CPUID[0x80000008]: 00003028 00000000 00000000 00000000
+00116935457i[CPU0  ] CPU Features supported:
+00116935457i[CPU0  ] 		x87
+00116935457i[CPU0  ] 		486ni
+00116935457i[CPU0  ] 		pentium_ni
+00116935457i[CPU0  ] 		p6ni
+00116935457i[CPU0  ] 		mmx
+00116935457i[CPU0  ] 		debugext
+00116935457i[CPU0  ] 		vme
+00116935457i[CPU0  ] 		pse
+00116935457i[CPU0  ] 		pae
+00116935457i[CPU0  ] 		pge
+00116935457i[CPU0  ] 		pse36
+00116935457i[CPU0  ] 		mtrr
+00116935457i[CPU0  ] 		pat
+00116935457i[CPU0  ] 		sysenter_sysexit
+00116935457i[CPU0  ] 		clflush
+00116935457i[CPU0  ] 		sse
+00116935457i[CPU0  ] 		sse2
+00116935457i[CPU0  ] 		mwait
+00116935457i[CPU0  ] 		vmx
+00116935457i[CPU0  ] 		longmode
+00116935457i[CPU0  ] 		lm_lahf_sahf
+00116935457i[CPU0  ] 		nx
+00116935457i[CPU0  ] 		cmpxhg16b
+00116935457i[CPU0  ] 		rdtscp
+00116935457i[CPU0  ] 		ffxsr
+00116935457i[CPU0  ] 		xapic
+00116935457i[PLUGIN] reset of 'pci' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'pci2isa' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'cmos' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'dma' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'pic' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'pit' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'vga' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'floppy' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'acpi' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'hpet' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'ioapic' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'keyboard' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'harddrv' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'pci_ide' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'unmapped' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'biosdev' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'speaker' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'extfpuirq' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'parallel' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'serial' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'gameport' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'iodebug' plugin device by virtual method
+00116935457i[PLUGIN] reset of 'usb_uhci' plugin device by virtual method
+00116935458i[      ] dbg: Quit
+00116935458i[CPU0  ] CPU is in real mode (active)
+00116935458i[CPU0  ] CS.mode = 16 bit
+00116935458i[CPU0  ] SS.mode = 16 bit
+00116935458i[CPU0  ] EFER   = 0x00000000
+00116935458i[CPU0  ] | EAX=00000000  EBX=00000000  ECX=00000000  EDX=00000000
+00116935458i[CPU0  ] | ESP=00000000  EBP=00000000  ESI=00000000  EDI=00000000
+00116935458i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf zf af pf cf
+00116935458i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00116935458i[CPU0  ] |  CS:f000( 1e00| 0|  0) ffff0000 0000ffff 0 0
+00116935458i[CPU0  ] |  DS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00116935458i[CPU0  ] |  SS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00116935458i[CPU0  ] |  ES:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00116935458i[CPU0  ] |  FS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00116935458i[CPU0  ] |  GS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
+00116935458i[CPU0  ] | EIP=0000fff0 (0000fff0)
+00116935458i[CPU0  ] | CR0=0x60000010 CR2=0x00000000
+00116935458i[CPU0  ] | CR3=0x00000000 CR4=0x00000000
+00116935458i[CMOS  ] Last time is 1720759462 (Fri Jul 12 00:44:22 2024)
+00116935458i[XGUI  ] Exit
+00116935458i[SIM   ] quit_sim called with exit code 0

@@ -20,25 +20,26 @@ SECTIONS
 		*(.multiboot.text)
 	}
 
+	. += 0xC0000000;
 
-	.text BLOCK (4K) : ALIGN(4K)
+	.text ALIGN(4K) : AT(ADDR(.text) - 0xC0000000)
 	{
 		*(.text)
 	}
 
 	/* Read only data. */
-	.rodata BLOCK(4K) : ALIGN(4K) 
+	.rodata ALIGN(4K) : AT(ADDR(.rodata) - 0xC0000000)
 	{
 		*(.rodata)
 	}
 
-	.data BLOCK(4K) : ALIGN(4K)
+	.data ALIGN(4K) : AT(ADDR(.data) - 0xC0000000)
 	{
 		*(.data)
 	}
 
 	/* Read write data and stack! */
-	.bss BLOCK(4K) : ALIGN(4K)
+	.bss ALIGN(4K) : AT(ADDR(.bss) - 0xC0000000)
 	{
 		*(COMMON)
 		*(.bss)

@@ -12,6 +12,7 @@ KERNELC?=kernel.c
 
 OBJS=\
      $(ARCHDIR)/bootNP.o \
+     $(KERNELDIR)/paging.o \
      $(KERNELDIR)/gdt.o \
      $(KERNELDIR)/idtStub.o \
      $(KERNELDIR)/interupts.o \
