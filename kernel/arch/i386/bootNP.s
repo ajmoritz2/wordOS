@@ -43,7 +43,7 @@ stack_top:
 boot_page_directory:
 	.skip 4096 # Its 3 KiB long
 boot_page_table1:
-	.skip 4096  # I think this ends up being 5 pages allocated?
+	.skip 20480  # I think this ends up being 5 pages allocated?
 
 .section .multiboot.text, "a"
 .global _start

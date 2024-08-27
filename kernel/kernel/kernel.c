@@ -45,16 +45,16 @@ void log_to_serial (char *string) {
 	}
 }
 
-void log_integer_to_serial (unsigned int number) {
-	char final[32]; // Allow only 31 digits, because we have the null terminator here
-	int i = 0;
-	for (int num = number; num != 0; num = num/10) {
+void log_integer_to_serial (uint64_t number) {
+	char final[64]; // Allow only 31 digits, because we have the null terminator here
+	uint32_t i = 0;
+	for (uint32_t num = number; num != 0; num = num/10) {
 		final[i] = '0' + num%10;
 		i++;
 	}
 
 
-	for (int j = 0, k = i - 1; j <= k; j++, k--) {
+	for (uint32_t j = 0, k = i - 1; j <= k; j++, k--) {
 		char c = final[j];
 		final[j] = final[k];
 		final[k] = c;

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define PGSIZE		4096
+#define PGSIZE		1024
 
 #define ERROR		0xF
 #define FREE 		0
