@@ -20,6 +20,9 @@
 #define PGROUNDUP(s) 	(((s)+PGSIZE-1) & ~(PGSIZE-1))
 #define PGROUNDDOWN(a) 	(((a)) & ~(PGSIZE-1))
 
+extern void load_directory(uint32_t* dir);
+extern void enable_paging();
+
 void pg_init(uintptr_t *entry_pd);
 
 #endif

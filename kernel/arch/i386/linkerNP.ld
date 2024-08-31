@@ -42,8 +42,8 @@ SECTIONS
 	.bss ALIGN(4K) : AT(ADDR(.bss) - 0xC0000000)
 	{
 		*(COMMON)
-		*(.bootstrap_stack)
 		*(.bss)
+		*(.bootstrap_stack)
 	}
 
 	_kernel_end = .;

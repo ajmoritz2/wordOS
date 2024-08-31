@@ -6,7 +6,6 @@
 extern uint32_t _kernel_start;
 extern uint32_t _kernel_end;
 
-extern void enable_paging(uint32_t daddr);
 
 #define PORT 		0x3f8
 #define KSTART		((uintptr_t)&_kernel_start)

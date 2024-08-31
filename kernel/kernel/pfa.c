@@ -41,7 +41,7 @@ void kfree(void *pa)
 	//log_integer_to_serial((uint32_t)&pap);
 	//log_integer_to_serial(pap[0]);
 	// Adding the stuff to the linked list
-	r = (struct run)pa;
+	r = (struct run*)pa;
 	//log_to_serial("\nNEXT\n");
 	r->next = freelist.next; 
 	//freelist.next = r;

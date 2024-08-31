@@ -1,7 +1,7 @@
 # Declare constants here
 .set MAGIC_NUMBER, 0xE85250D6
 .set ARCH, 0
-.set PAGESIZE, 4096 # 3 MiB
+.set PAGESIZE, 4096 # 4 MiB
 .set BOOTLOC, 0xC0000000 # Loc of kernel
 
 .section .mb2_hdr, "aw"
@@ -49,6 +49,8 @@ boot_page_table1:
 .global _start
 .type _start, @function
 _start:
+
+	mov $stack_top, %esp
 	movl $(boot_page_table1 - 0xC0000000), %edi # Here we are just placing values into registers to properly map
 	# ^ is the phys addr of the boot page table
 	movl $0, %esi
@@ -97,7 +99,6 @@ _start:
 	movl %cr3, %ecx
 	movl %ecx, %cr3
 
-	mov $stack_top, %esp
 
 
 	pushl $(boot_page_directory)
@@ -111,21 +112,26 @@ _start:
 	jmp 1b
 
 
+.global load_directory
+.type load_directory, @function
+load_directory:
+	push %ebp
+	mov %esp, %ebp
+	mov 8(%esp), %eax
+	mov %eax, %cr3
+	mov %ebp, %esp
+	pop %ebp
+	ret
 .global enable_paging
 .type enable_paging, @function
 enable_paging:
-	pushl %ebp
-	movl %esp, %ebp
-	
-	movl 8(%esp), %eax
-	movl %eax, %cr3
-	
-	movl %cr0, %eax
-	orl $0x80000001, %eax
-	movl %eax, %cr0
-	
-	movl $0, %eax
-	popl %ebp
+	push %ebp
+	mov %esp, %ebp
+	mov %cr0, %eax
+	or $0x80000000, %eax
+	mov %eax, %cr0
+	mov %ebp, %esp
+	pop %ebp
 	ret
 
 .global flush_gdt

@@ -70,11 +70,10 @@ void log_integer_to_serial (uint64_t number) {
 void kernel_main(uintptr_t *entry_pd) 
 {
 	pg_init(entry_pd);
-	//gdt_install();
+//	gdt_install();
 	//init_idt();
-	init_serial();
 	log_to_serial("Entries hopefully loaded here!\n");
-	log_to_serial("Maybe this will help me eyes.\n");
+	//log_to_serial("Maybe this will help me eyes.\n");
 	//asm("int $4");
-	log_to_serial("Did I make it here? \n");
+	//log_to_serial("Did I make it here? \n");
 }
