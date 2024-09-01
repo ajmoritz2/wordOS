@@ -23,6 +23,7 @@ void idt_set_gate(uint8_t num, void(*isr)(void), uint8_t flags)
 
 void init_idt() 
 {
+	log_to_serial("HELLO WORLD\n");
 	idtr.base = (uint32_t)idt;
 	idtr.limit = (uint16_t)sizeof(idt_entry) * 256 - 1;
 
@@ -63,7 +64,7 @@ void init_idt()
 
 	log_to_serial("Loaded IDT\n");
 	asm volatile ("lidt %0" : : "m"(idtr)); // Loading new IDT
-	asm volatile ("sti"); // Interupt flag
+	//asm volatile ("sti"); // Interupt flag
 }
 
 void exc_print(struct isr_frame *frame)

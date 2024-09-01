@@ -80,6 +80,8 @@ _start:
 	movl $(boot_page_table1 - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 0
 	movl $(boot_page_table1 - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 768 * 4
 
+	# The 768 is the 0xC0000000/0x400000 because each pde is 4 MiB and the 4 is bytes in 32-bit int.
+
 	# Set cr3 to the address of the boot_page_directory.
 	movl $(boot_page_directory - 0xC0000000), %ecx
 	movl %ecx, %cr3	
@@ -90,6 +92,7 @@ _start:
 	
 	lea 4f, %ecx # Loading the memory address of 4 into the register ecx
 	jmp *%ecx	# I believe the * means long jump and we are jumping to the effective address of 4
+	# Here we just made the virtual address to be in the 0xC0000000 range. We are still in the 0x100000 range physically! 
 .section .text
 4:
 	# Unmap the identity paging we did
@@ -137,8 +140,9 @@ enable_paging:
 .global flush_gdt
 .type flush_gdt, @function
 flush_gdt:
+	mov 4(%esp), %eax
         cli
-        lgdt (gp)
+        lgdt (%eax)
         movw $0x10, %ax
         movw %ax, %ds
         movw %ax, %es
@@ -147,4 +151,4 @@ flush_gdt:
         movw %ax, %ss
         jmp $0x08, $flush
 flush:
-        ret
+	ret
