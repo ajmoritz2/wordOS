@@ -3,7 +3,7 @@
 #include "kernel.h"
 #include "header/paging.h"
 
-struct gdt_entry desc[6];
+struct gdt_entry desc[5];
 struct GDTR gp;
 
 extern void flush_gdt(uint32_t gp);
@@ -22,7 +22,6 @@ void gdt_set_gate(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_
 
 void gdt_install(void)
 {
-	asm __volatile__("cli");
 	gp.limit = (sizeof(struct gdt_entry) * 5) - 1;
 	gp.base = (uint32_t)&desc;
 

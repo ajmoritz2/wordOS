@@ -32,23 +32,17 @@ isr_frame_as:
 	movl %cr2, %eax
 	pushl %eax
 	movl %cr3, %eax
-	pushl %eax
-	movl %cr4, %eax
-	pushl %eax
-	
-	pushl %esp
+	pushl %eax 
+
 	cld
-	call exception_handler
+	call isr_handler
 	
-	popl %eax
-	movl %eax, %cr4
 	popl %eax
 	movl %eax, %cr3
 	popl %eax
 	movl %eax, %cr2
 	popl %eax
 	movl %eax, %cr0
-	popl %eax
 
 	popl %edi
 	popl %esi
@@ -57,7 +51,7 @@ isr_frame_as:
 	popl %ebx
 	popl %eax
 	addl $8, %esp
-
+	sti
 	iret
 
 isr_no_err_stub 0
@@ -93,10 +87,4 @@ isr_no_err_stub 29
 isr_err_stub    30
 isr_no_err_stub 31
 
-.global isr_stub_table
-isr_stub_table:
-.set i, 0
-.rept
-	.int isr_stub_$i
-.set i, $(i+1)
-.endr
+

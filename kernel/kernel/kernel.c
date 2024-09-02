@@ -48,19 +48,21 @@ void log_to_serial (char *string) {
 void log_integer_to_serial (uint64_t number) {
 	char final[64]; // Allow only 31 digits, because we have the null terminator here
 	uint32_t i = 0;
+	if (number == 0) {
+		log_to_serial("0");
+		return;
+	}
 	for (uint32_t num = number; num != 0; num = num/10) {
 		final[i] = '0' + num%10;
 		i++;
 	}
 
-
 	for (uint32_t j = 0, k = i - 1; j <= k; j++, k--) {
 		char c = final[j];
 		final[j] = final[k];
 		final[k] = c;
-	}	
+	}
 	final[i] = 0;	
-
 	log_to_serial(final);
 }
 
@@ -69,11 +71,14 @@ void log_integer_to_serial (uint64_t number) {
 
 void kernel_main(uintptr_t *entry_pd) 
 {
-	pg_init(entry_pd);
+	//pg_init(entry_pd);
 	gdt_install();
 	init_idt();
-	log_to_serial("Entries hopefully loaded here!\n");
+	init_serial();
+	//uint32_t* test = (uint32_t*)0xb0000000;
+	//test[0] = 1;
+//	log_to_serial("Entries hopefully loaded here!\n");
 	//log_to_serial("Maybe this will help me eyes.\n");
-	asm("int $0x4");
-	//log_to_serial("Did I make it here? \n");
+	asm volatile("int $0x02");
+	log_to_serial("Did I make it here? \n");
 }

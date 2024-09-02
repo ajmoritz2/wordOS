@@ -18,23 +18,22 @@ typedef struct
 } __attribute__((packed)) idtr_t;
 
 struct isr_frame {
-        uint32_t cr4;
-        uint32_t cr3;
-        uint32_t cr2;
-        uint32_t cr0;
+	uint32_t cr3;
+	uint32_t cr2;
+	uint32_t cr0;
+	
+	uint32_t edi;
+	uint32_t esi;
+	uint32_t edx;
+	uint32_t ecx;
+	uint32_t ebx;
+	uint32_t eax;
 
-        uint32_t edi;
-        uint32_t esi;
-        uint32_t edx;
-        uint32_t ecx;
-        uint32_t ebx;
-        uint32_t eax;
-
-        uint32_t isr_vector;
-        uint32_t isr_err;
-        uint32_t eip;
-        uint32_t cs;
-        uint32_t eflags;
+	uint32_t isr_no;
+	uint32_t isr_err;
+	uint32_t eip;
+	uint32_t cs;
+	uint32_t eflags;	
 } __attribute__((packed));
 
 extern void isr_stub_0(void);
@@ -72,7 +71,9 @@ extern void isr_stub_31(void);
 
 void exception_handler(struct isr_frame frame);
 
-void idt_set_descriptor(uint8_t vector, void* isr, uint8_t flags);
+void idt_set_descriptor(uint8_t vector, uint32_t  isr, uint8_t flags);
+
+void core_dump(struct isr_frame *frame);
 
 void init_idt(void);
 

@@ -2,6 +2,7 @@
 #define PAGING_H
 
 #include <stdint.h>
+#include "../interupts.h"
 
 #define PGSIZE		1024
 
@@ -36,6 +37,8 @@ typedef struct {
 
 // I don't see a need to create a pt and pd structure because
 // they are just arrays.
+
+uint8_t handle_exception(struct isr_frame *frame);
 
 void pg_init(uintptr_t *entry_pd);
 
