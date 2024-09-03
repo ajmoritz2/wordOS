@@ -5,7 +5,6 @@
 #include "kernel.h"
 #include "header/paging.h"
 
-//extern uintptr_t *kpgdir;
 
 extern inline unsigned char inportb (int portnum)
 {
@@ -48,10 +47,13 @@ void log_to_serial (char *string) {
 void log_integer_to_serial (uint64_t number) {
 	char final[64]; // Allow only 31 digits, because we have the null terminator here
 	uint32_t i = 0;
-	if (number == 0) {
-		log_to_serial("0");
+	if (number < 10) {
+		final[0] = '0' + number;
+		final[1] = 0;
+		log_to_serial(final);
 		return;
 	}
+
 	for (uint32_t num = number; num != 0; num = num/10) {
 		final[i] = '0' + num%10;
 		i++;
@@ -66,6 +68,33 @@ void log_integer_to_serial (uint64_t number) {
 	log_to_serial(final);
 }
 
+void print_hex(uint32_t number)
+{
+	char final[64];
+	final[0] = '0';
+	final[1] = 'x';
+	uint32_t i = 2;
+	for (uint32_t num = number; num != 0; num = num/16) {
+		uint32_t value = num%16;
+		if (value < 10) {
+			final[i] = '0' + value;
+		} else {
+			final[i] = 'a' + (value-10);
+		}
+
+		i++;
+	}
+	
+	for (uint32_t j = 2, k = i - 1; j <= k; j++, k--) {
+		char c = final[k];
+		final[k] = final[j];
+		final[j] = c;
+	}
+
+	final[i] = 0;
+	log_to_serial(final);
+}
+
 
 // MAIN SECTION OF KERNEL
 
@@ -75,10 +104,7 @@ void kernel_main(uintptr_t *entry_pd)
 	gdt_install();
 	init_idt();
 	init_serial();
-	//uint32_t* test = (uint32_t*)0xb0000000;
-	//test[0] = 1;
-//	log_to_serial("Entries hopefully loaded here!\n");
-	//log_to_serial("Maybe this will help me eyes.\n");
-	asm volatile("int $0x02");
+	print_hex(0x1);
+	//asm volatile("int $0x06");
 	log_to_serial("Did I make it here? \n");
 }

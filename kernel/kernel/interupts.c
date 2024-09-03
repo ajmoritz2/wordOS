@@ -69,8 +69,6 @@ void init_idt()
 
 void exc_print(struct isr_frame *frame)
 {
-	log_integer_to_serial(frame->isr_no);
-	log_to_serial("\nCALLED TWICE\n");
 	switch (frame->isr_no) {
 		case 0x00:
 			log_to_serial("Division by zero in kernel space!\n");
@@ -86,6 +84,7 @@ void exc_print(struct isr_frame *frame)
 			break;
 		default:
 			log_integer_to_serial(frame->isr_no);
+			log_to_serial("\n");
 			break;
 	}
 }

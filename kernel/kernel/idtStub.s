@@ -34,7 +34,6 @@ isr_frame_as:
 	movl %cr3, %eax
 	pushl %eax 
 
-	cld
 	call isr_handler
 	
 	popl %eax
