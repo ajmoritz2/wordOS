@@ -13,15 +13,9 @@ void copy_kernel_map(uint32_t* new_kpd)
 {
 	// Remember that 768 and onward is pretty much reserved for kernel space, stack, and probably heap
 	memcpy(new_kpd, kernel_pd, 4096);
+	
 }
 
-void* init_page_directory() {
-	uint32_t* pd = kalloc();
-	//log_integer_to_serial((uint32_t)pd);	
-//	copy_kernel_map((uint32_t)&pd);
-	//pd[1023] = (uintptr_t)&pd;
-	return (void*) pd;
-}
 
 void newinit_pd(uint32_t* pd)
 {
@@ -29,15 +23,25 @@ void newinit_pd(uint32_t* pd)
 	for (i = 0; i < 1024; i++) {
 		pd[i] = 0x3;
 	}
-	pd[1023] = (uint32_t) pd;
+	pd[1023] = (uint32_t) (pd - 0xC0000000) | 3;
 }
 
-void init_pt(uint32_t* pt)
+void init_kpt(uint32_t* pt)
 {
-	uint32_t i;
-	for (i = 0; i < 1024; i++)
+	// Just gonna keep it static here because its less of a headache for now.
+	// We will see what I think of it later on...
+	// Its really just a stupid hack
+	uint32_t j = 0;
+	uint32_t flag = 0x3;
+	uint32_t init_pages = ((KEND - 0x100000) + (PGROUNDUP(NUM_FRAMES*4))) / 4096; // Some math, not very efficient,
+										      // but makes my life easy...
+	for (uint32_t i = 256; i < 1024; i++)
 	{
-		pt[i] = (i * 0x1000) + 0x100000 | 3;
+		if (i > 257+init_pages) flag = 0x2;
+		if (!(pt[i] &  3)) {
+			pt[i] = (j * 0x1000) + 0x100000 | flag; // Mark kernel pages as present because I'm lazy af
+		}
+		j++;
 	}
 }
 
@@ -66,18 +70,22 @@ uint8_t handle_exception(struct isr_frame *frame)
 	if (code & 0x20) { log_to_serial("Protection Fault\n"); }
 	if (code & 0x40) { log_to_serial("Shadow Stack\n"); }
 	log_to_serial("CR2 Dump: ");
-	log_integer_to_serial((uint64_t)frame->isr_err);
+	print_hex((uint64_t)frame->cr2);
 	log_to_serial("\n");
 	return 0;
 }
 
 void pg_init(uintptr_t *entry_pd)
 {
-//	kinit();
+	// Copy over tables into C code for easier access
 	newinit_pd(kernel_pd);
 	memcpy(kernel_pd, entry_pd, 4096);
-	init_pt(kernel_pt);
-	//kernel_pd[767] = (uint32_t)PHYSADDR((uint32_t)kernel_pt) | 3;
+	memcpy(kernel_pt, (uint32_t*)((kernel_pd[768] & 0xFFFFF000) + 0xC0000000), 4096);
+	init_kpt(kernel_pt); // PRAY TO GOD
+	
+	kernel_pd[768] = (uint32_t)PHYSADDR((uint32_t) kernel_pt) | 3;
+	
+	// ENDING TABLE COPIES
 	// To put a page table in the directory, its pd[virt >> 22] into phys addr of pt 
 	load_page_directory((uint32_t*)PHYSADDR((uint32_t)kernel_pd));
 	enable_paging_c();

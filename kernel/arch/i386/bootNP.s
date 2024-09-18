@@ -12,14 +12,13 @@ mb2_hdr_begin:
 .long ARCH
 .long (mb2_hdr_end - mb2_hdr_begin) 
 .long -(MAGIC_NUMBER + (mb2_hdr_end - mb2_hdr_begin))
-
 mb2_frame_buffer_req:
-	.short 5 # Tag identifier
+	.short 0x05 # Tag identifier
 	.short 1 # Flag 
 	.long (mb2_framebuffer_end - mb2_frame_buffer_req) # Should be 20 if I read the docs correct
 	.long 0
 	.long 0
-	.long 0
+	.long 32
 mb2_framebuffer_end: # Puts in an address space
 .align 8
 # the end tag: type = 0, size = 8
@@ -43,7 +42,7 @@ stack_top:
 boot_page_directory:
 	.skip 4096 # Its 3 KiB long
 boot_page_table1:
-	.skip 20480  # I think this ends up being 5 pages allocated?
+	.skip 4096  # I think this ends up being 5 pages allocated?
 
 .section .multiboot.text, "a"
 .global _start
@@ -63,6 +62,7 @@ _start:
 	jge 3f 			  # If esi - _kernel_end (Physical addr) >= 0 jmp 3	
 
 	# Map address as "P and R/W".
+	
 	movl %esi, %edx # Moving copying esi to edx so we can set those flags
 	orl $0x003, % edx # setting bits 0 and 1
 		
@@ -103,7 +103,7 @@ _start:
 	movl %ecx, %cr3
 
 
-
+	pushl %ebx
 	pushl $(boot_page_directory)
 	# Transfer control to the main kernel
 	call kernel_main

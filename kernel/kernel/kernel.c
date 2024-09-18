@@ -1,9 +1,13 @@
 #include <stddef.h>
 #include <stdint.h>
+#include <stdarg.h>
 #include "interupts.h"
 #include "gdt.h"
 #include "kernel.h"
+#include "header/string.h"
+#include "header/pfa.h"
 #include "header/paging.h"
+#include "header/multiboot_parse.h"
 
 
 extern inline unsigned char inportb (int portnum)
@@ -68,14 +72,14 @@ void log_integer_to_serial (uint64_t number) {
 	log_to_serial(final);
 }
 
-void print_hex(uint32_t number)
+void print_hex(uint64_t number)
 {
 	char final[64];
 	final[0] = '0';
 	final[1] = 'x';
 	uint32_t i = 2;
 	for (uint32_t num = number; num != 0; num = num/16) {
-		uint32_t value = num%16;
+	 	uint32_t value = num%16;
 		if (value < 10) {
 			final[i] = '0' + value;
 		} else {
@@ -95,16 +99,56 @@ void print_hex(uint32_t number)
 	log_to_serial(final);
 }
 
+void log(char *string, ...)
+{
+	va_list params;
+	int pnum;
+	int i = 0;
+	int mlen = strlen(string);
+	char final[mlen+1];
+	char past = 0;
+	char current = 0;
+	while (i <= mlen) {
+		current = string[i];
+		if (current == 0) {
+			log_to_serial(final);
+			break;
+		}
+		
+		if (past == '%') {
+			if (current == 'd') {}
+
+			goto end;
+		}
+
+		if (current == '%'){
+			goto end;
+		}
+		
+		final[i] = current;
+		end:
+		past = current;
+		i++;
+	}	
+	
+}
+
 
 // MAIN SECTION OF KERNEL
 
-void kernel_main(uintptr_t *entry_pd) 
+void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc) 
 {
-	//pg_init(entry_pd);
+	if (multiboot_loc & 7)
+	{
+		log_to_serial("ERROR\n");
+		return;
+	}
+	pg_init(entry_pd);
 	gdt_install();
 	init_idt();
 	init_serial();
-	print_hex(0x1);
+	kinit();
+	//init_multiboot(multiboot_loc+ 0xC0000000);
 	//asm volatile("int $0x06");
 	log_to_serial("Did I make it here? \n");
 }

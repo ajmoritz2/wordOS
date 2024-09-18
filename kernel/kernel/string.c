@@ -44,3 +44,12 @@ void* memset(void * dest, int c, size_t n)
 	return (dest); 
 }
 
+uint32_t strlen(char *string)
+{
+	char *ptr = &string[0];
+
+	while (*ptr)
+		ptr++;
+
+	return ptr-string;
+}

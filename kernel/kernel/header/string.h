@@ -13,4 +13,6 @@ void* memmove(void* s1, const void* s2, size_t n);
 
 void* __attribute__((weak)) memset(void* dest, int c, size_t n);
 
+uint32_t strlen(char *string);
+
 #endif

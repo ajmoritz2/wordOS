@@ -18,6 +18,7 @@ OBJS=\
      $(KERNELDIR)/gdt.o \
      $(KERNELDIR)/idtStub.o \
      $(KERNELDIR)/interupts.o \
+     $(KERNELDIR)/multiboot_parse.o \
      $(KERNELDIR)/kernel.o
 
 .PHONY: all
