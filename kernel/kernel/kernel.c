@@ -7,7 +7,9 @@
 #include "header/string.h"
 #include "header/pfa.h"
 #include "header/paging.h"
+#include "header/vmm.h"
 #include "header/multiboot_parse.h"
+
 
 
 extern inline unsigned char inportb (int portnum)
@@ -74,6 +76,10 @@ void log_integer_to_serial (uint64_t number) {
 
 void print_hex(uint64_t number)
 {
+	if (number == 0) { // Hack
+		log_to_serial("0x0");
+		return;
+	}
 	char final[64];
 	final[0] = '0';
 	final[1] = 'x';
@@ -99,38 +105,42 @@ void print_hex(uint64_t number)
 	log_to_serial(final);
 }
 
-void log(char *string, ...)
+void logf(char *string, ...)
 {
 	va_list params;
-	int pnum;
-	int i = 0;
-	int mlen = strlen(string);
-	char final[mlen+1];
-	char past = 0;
-	char current = 0;
-	while (i <= mlen) {
-		current = string[i];
-		if (current == 0) {
-			log_to_serial(final);
-			break;
+	va_start(params, string); 
+	while (*string) {
+		if (*string == '%') {
+			*string++;
+			switch (*string) {
+				case 'x':
+					print_hex(va_arg(params, uint32_t));
+					break;
+				case '%':
+					outportb(PORT, *string);
+					break;
+				case 'd':
+					log_integer_to_serial(va_arg(params, uint32_t));
+					break;
+				case 's':
+					log_to_serial(va_arg(params, char *));
+					break;
+				default:
+					log_to_serial("UNKNOWN OPTION %");
+					outportb(PORT, *string);
+					log_to_serial("!\n");
+					break;
+			}
+			*string++;
+			continue;
 		}
-		
-		if (past == '%') {
-			if (current == 'd') {}
 
-			goto end;
-		}
+		outportb(PORT, *string);
 
-		if (current == '%'){
-			goto end;
-		}
-		
-		final[i] = current;
-		end:
-		past = current;
-		i++;
-	}	
-	
+		*string++;
+	}
+
+	va_end(params);
 }
 
 
@@ -143,12 +153,19 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 		log_to_serial("ERROR\n");
 		return;
 	}
-	pg_init(entry_pd);
+	uint32_t* kpd = pg_init(entry_pd);
 	gdt_install();
 	init_idt();
 	init_serial();
 	kinit();
+
+	//uint32_t* test = (uint32_t*)0xB0001000;
+	//test[1] = 1;
+	//vmm* kvmm = create_vmm(kpd);
+
+	//set_current_vmm(kvmm);
 	//init_multiboot(multiboot_loc+ 0xC0000000);
 	//asm volatile("int $0x06");
-	log_to_serial("Did I make it here? \n");
+
+	log_to_serial("\nPROGRAM TO HALT! \n");
 }

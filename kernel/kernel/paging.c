@@ -5,9 +5,71 @@
 #include "interupts.h"
 #include <stddef.h>
 
+#define RECURSIVE_ADDR 0xFFC00000
+
 static uint32_t kernel_pd[1024] __attribute__((aligned(4096))); // Aligned to the 4 Ki for CPU reasons
 static uint32_t kernel_pt[1024] __attribute__((aligned(4096)));
-static uint32_t test_pt[1024] __attribute__((aligned(4096)));
+
+// mmap function!!
+// Only use once pmm has been set up!
+void memory_map(uint32_t* root_pd, uint32_t* phys, 
+		uint32_t* virt, size_t flags)
+{
+	/*
+	 * Page tables are located at (RECURSIVE_ADDR | (pd_index << 12))
+	 * Check presence at the PD entry
+	 */
+	uint32_t pd_index = (uint32_t) ((uint32_t)virt >> 22);
+	uint32_t pt_index = (uint32_t) (((uint32_t)virt >> 12) & 0x3FF);
+
+	if (root_pd[pd_index] == 0) {
+	       	create_new_pt(root_pd, pd_index);
+	}
+	
+	uint32_t* page_table = (uint32_t*) (RECURSIVE_ADDR | (pd_index << 12)); // Should be correct no matter what
+
+	if ((uint32_t)phys & 0x3FF) { log_to_serial("PHYSICAL ADDRESS NOT PAGE ALIGNED\n"); return;}
+
+	page_table[pt_index] = (uint32_t)phys | flags;	
+}
+
+void memory_unmap(uint32_t* root_pd, uint32_t* virt) {
+	uint32_t pd_index = (uint32_t) ((uint32_t)virt >> 22);
+	uint32_t pt_index = (uint32_t) (((uint32_t)virt >> 12) & 0x3FF);
+
+	uint32_t* page_table = (uint32_t*) (RECURSIVE_ADDR | (pd_index << 12));
+	if (root_pd[pd_index] == 0) {
+		return;
+	}
+	if ((uint32_t)virt & 0x3FF) { log_to_serial("PHYSICAL ADDRESS NOT PAGE ALIGNED\n"); return;}
+	uint32_t phys = page_table[pt_index] & ~0xFFF;
+
+	clear_frame(physical_to_frame((uint32_t*)phys));
+	
+	page_table[pt_index] = 0;	
+}
+
+uint32_t* create_new_pt(uint32_t* root_pd, uint32_t pd_index)
+{
+	// Recursive paging :3c
+	
+	log_to_serial("CREATING NEW PT\n");
+
+	uint32_t* page_table = (uint32_t*) VIRTADDR((uint32_t)root_pd[1023]);
+
+	uint32_t* new_pt = (uint32_t *) alloc_phys_page();
+
+	page_table[pd_index] = (uint32_t) new_pt | 3;
+
+	root_pd[pd_index] = (uint32_t) new_pt | 3;
+	log_to_serial("New PT Created!\n");
+	
+	uint32_t* virt_pt = (uint32_t*) (RECURSIVE_ADDR | (pd_index << 12));
+	
+	memset(virt_pt, 0, 1024);
+
+	return virt_pt;
+}	
 
 void copy_kernel_map(uint32_t* new_kpd)
 {
@@ -75,18 +137,19 @@ uint8_t handle_exception(struct isr_frame *frame)
 	return 0;
 }
 
-void pg_init(uintptr_t *entry_pd)
+uint32_t* pg_init(uintptr_t *entry_pd)
 {
 	// Copy over tables into C code for easier access
 	newinit_pd(kernel_pd);
-	memcpy(kernel_pd, entry_pd, 4096);
-	memcpy(kernel_pt, (uint32_t*)((kernel_pd[768] & 0xFFFFF000) + 0xC0000000), 4096);
+	memset(kernel_pd, 0, 4096);
+	memcpy(kernel_pt, (uint32_t*)((entry_pd[768] & 0xFFFFF000) + 0xC0000000), 4096);
 	init_kpt(kernel_pt); // PRAY TO GOD
-	
 	kernel_pd[768] = (uint32_t)PHYSADDR((uint32_t) kernel_pt) | 3;
-	
+	kernel_pd[1023] = (uint32_t)PHYSADDR((uint32_t) kernel_pd) | 3;	
 	// ENDING TABLE COPIES
 	// To put a page table in the directory, its pd[virt >> 22] into phys addr of pt 
 	load_page_directory((uint32_t*)PHYSADDR((uint32_t)kernel_pd));
 	enable_paging_c();
+
+	return kernel_pd;
 }

@@ -17,4 +17,6 @@ extern uint32_t _kernel_end;
 void log_to_serial (char* number);
 void log_integer_to_serial (uint64_t number);
 void print_hex (uint64_t number);
+void logf(char*, ...);
+
 #endif

@@ -6,7 +6,10 @@
 
 void kinit();
 
-void kfree(void *pa);
 void* pre_malloc(uint32_t size, uint32_t*);
+void clear_frame(uint32_t);
+uint32_t *alloc_phys_page();
+uint32_t physical_to_frame(uint32_t* physical);
+uint32_t *frame_to_physical(uint32_t);
 
 #endif

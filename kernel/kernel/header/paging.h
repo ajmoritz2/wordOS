@@ -2,6 +2,7 @@
 #define PAGING_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include "../interupts.h"
 
 #define PGSIZE		1024
@@ -40,6 +41,11 @@ typedef struct {
 
 uint8_t handle_exception(struct isr_frame *frame);
 
-void pg_init(uintptr_t *entry_pd);
+uint32_t* pg_init(uintptr_t *entry_pd);
+
+void memory_map(uint32_t*, uint32_t*, uint32_t*, size_t);
+void memory_unmap(uint32_t*, uint32_t*);
+
+uint32_t* create_new_pt(uint32_t*, uint32_t);
 
 #endif
