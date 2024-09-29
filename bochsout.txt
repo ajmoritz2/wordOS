@@ -38,7 +38,7 @@
 00000000000i[USBCTL] Pluggable USB devices
 00000000000i[USBCTL]   floppy mouse tablet keypad keyboard hub disk cdrom
 00000000000i[USBCTL]   printer
-00000000000i[MEM0  ] allocated memory at 0x7bda25800010. after alignment, vector=0x7bda25801000, block_size = 128K
+00000000000i[MEM0  ] allocated memory at 0x7796e2a00010. after alignment, vector=0x7796e2a01000, block_size = 128K
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/usr/share/bochs/BIOS-bochs-latest')
@@ -50,7 +50,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Mon Sep 23 23:48:48   2024 tz=utc (time0=1727135328)
+00000000000i[CMOS  ] Setting initial clock to: Sun Sep 29 13:02:10   2024 tz=utc (time0=1727614930)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -241,40 +241,58 @@
 00001784230i[BIOS  ] ata0-0: PCHS=56/16/63 translation=none LCHS=56/16/63
 00005217189i[BIOS  ] IDE time out
 00035221075i[BIOS  ] Booting from 0000:7c00
-00136383108i[BXVGA ] VBE set bpp (32)
-00136383120i[BXVGA ] VBE set xres (1920)
-00136383132i[BXVGA ] VBE set yres (1200)
-00136383215i[BXVGA ] VBE enabling x 1920, y 1200, bpp 32, 9216000 bytes visible
-00174304014e[SER   ] com1: write to tx hold register when not empty
-00174304037e[SER   ] com1: write to tx hold register when not empty
-00174304060e[SER   ] com1: write to tx hold register when not empty
-00174304083e[SER   ] com1: write to tx hold register when not empty
-00174304106e[SER   ] com1: write to tx hold register when not empty
-00174304129e[SER   ] com1: write to tx hold register when not empty
-00174304152e[SER   ] com1: write to tx hold register when not empty
-00174304175e[SER   ] com1: write to tx hold register when not empty
-00174304198e[SER   ] com1: write to tx hold register when not empty
-00174304309e[SER   ] com1: write to tx hold register when not empty
-00174304353e[SER   ] com1: write to tx hold register when not empty
-00174304375i[CPU0  ] WARNING: HLT instruction with IF=0!
-10516250000i[      ] Ctrl-C detected in signal handler.
-10516250006i[CPU0  ] CPU is in protected mode (halted)
-10516250006i[CPU0  ] CS.mode = 32 bit
-10516250006i[CPU0  ] SS.mode = 32 bit
-10516250006i[CPU0  ] EFER   = 0x00000000
-10516250006i[CPU0  ] | EAX=00000000  EBX=001031b0  ECX=00000ffc  EDX=000003f8
-10516250006i[CPU0  ] | ESP=c010d7e4  EBP=c010d7ec  ESI=0010e000  EDI=00106438
-10516250006i[CPU0  ] | IOPL=0 ID vip vif ac vm rf nt of df if tf SF zf af PF cf
-10516250006i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
-10516250006i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
-10516250006i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-10516250006i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-10516250006i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-10516250006i[CPU0  ] |  FS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-10516250006i[CPU0  ] |  GS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-10516250006i[CPU0  ] | EIP=c0101e4f (c0101e4f)
-10516250006i[CPU0  ] | CR0=0xe0000011 CR2=0x00000000
-10516250006i[CPU0  ] | CR3=0x00107000 CR4=0x00000000
-10516250006i[CMOS  ] Last time: 1727136379 tz=utc (Tue Sep 24  0:06:19   2024)
-10516250006i[XGUI  ] Exit
-10516250006i[SIM   ] quit_sim called with exit code 1
+00149917157i[BXVGA ] VBE set bpp (32)
+00149917169i[BXVGA ] VBE set xres (1920)
+00149917181i[BXVGA ] VBE set yres (1200)
+00149917264i[BXVGA ] VBE enabling x 1920, y 1200, bpp 32, 9216000 bytes visible
+00187838155e[SER   ] com1: write to tx hold register when not empty
+00187838178e[SER   ] com1: write to tx hold register when not empty
+00187838201e[SER   ] com1: write to tx hold register when not empty
+00187838224e[SER   ] com1: write to tx hold register when not empty
+00187838247e[SER   ] com1: write to tx hold register when not empty
+00187838270e[SER   ] com1: write to tx hold register when not empty
+00187838293e[SER   ] com1: write to tx hold register when not empty
+00187838316e[SER   ] com1: write to tx hold register when not empty
+00187838339e[SER   ] com1: write to tx hold register when not empty
+00187838384e[SER   ] com1: write to tx hold register when not empty
+00187838407e[SER   ] com1: write to tx hold register when not empty
+00187838430e[SER   ] com1: write to tx hold register when not empty
+00187838453e[SER   ] com1: write to tx hold register when not empty
+00187838476e[SER   ] com1: write to tx hold register when not empty
+00187838499e[SER   ] com1: write to tx hold register when not empty
+00187838522e[SER   ] com1: write to tx hold register when not empty
+00187838545e[SER   ] com1: write to tx hold register when not empty
+00187838568e[SER   ] com1: write to tx hold register when not empty
+00187838591e[SER   ] com1: write to tx hold register when not empty
+00187838614e[SER   ] com1: write to tx hold register when not empty
+00187838637e[SER   ] com1: write to tx hold register when not empty
+00187838660e[SER   ] com1: write to tx hold register when not empty
+00187838683e[SER   ] com1: write to tx hold register when not empty
+00187838706e[SER   ] com1: write to tx hold register when not empty
+00187838729e[SER   ] com1: write to tx hold register when not empty
+00187838752e[SER   ] com1: write to tx hold register when not empty
+00187838775e[SER   ] com1: write to tx hold register when not empty
+00187838798e[SER   ] com1: write to tx hold register when not empty
+00187838817i[CPU0  ] WARNING: HLT instruction with IF=0!
+14717130000i[      ] Ctrl-C detected in signal handler.
+14717130008i[      ] dbg: Quit
+14717130008i[CPU0  ] CPU is in protected mode (halted)
+14717130008i[CPU0  ] CS.mode = 32 bit
+14717130008i[CPU0  ] SS.mode = 32 bit
+14717130008i[CPU0  ] EFER   = 0x00000000
+14717130008i[CPU0  ] | EAX=00000000  EBX=00103220  ECX=00000ffc  EDX=000003f8
+14717130008i[CPU0  ] | ESP=c0111857  EBP=00000000  ESI=00112000  EDI=00106448
+14717130008i[CPU0  ] | IOPL=0 ID vip vif ac vm rf nt of df if tf SF zf af pf cf
+14717130008i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+14717130008i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
+14717130008i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+14717130008i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+14717130008i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+14717130008i[CPU0  ] |  FS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+14717130008i[CPU0  ] |  GS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+14717130008i[CPU0  ] | EIP=c010101d (c010101d)
+14717130008i[CPU0  ] | CR0=0xe0000011 CR2=0x00000000
+14717130008i[CPU0  ] | CR3=0x0010b000 CR4=0x00000000
+14717130008i[CMOS  ] Last time: 1727616401 tz=utc (Sun Sep 29 13:26:41   2024)
+14717130008i[XGUI  ] Exit
+14717130008i[SIM   ] quit_sim called with exit code 0

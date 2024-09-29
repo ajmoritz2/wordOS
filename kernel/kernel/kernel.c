@@ -143,11 +143,18 @@ void logf(char *string, ...)
 	va_end(params);
 }
 
+uint32_t get_stackp() 
+{
+	uint32_t esp;
+	asm ("mov %%esp, %0" : "=r"(esp));
+	return esp;
+}
 
 // MAIN SECTION OF KERNEL
 
 void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc) 
 {
+	logf("STACK AT: %x\n", get_stackp());
 	if (multiboot_loc & 7)
 	{
 		log_to_serial("ERROR\n");
@@ -158,14 +165,14 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	init_idt();
 	init_serial();
 	kinit();
+	
+	vmm* kvmm = create_vmm(kpd);
+	set_current_vmm(kvmm);
 
-	//uint32_t* test = (uint32_t*)0xB0001000;
-	//test[1] = 1;
-	//vmm* kvmm = create_vmm(kpd);
-
-	//set_current_vmm(kvmm);
-	//init_multiboot(multiboot_loc+ 0xC0000000);
+	init_multiboot(kvmm, multiboot_loc + 0xC0000000);
 	//asm volatile("int $0x06");
 
 	log_to_serial("\nPROGRAM TO HALT! \n");
+
+	logf("STACK AT: %x\n", get_stackp());
 }

@@ -25,9 +25,8 @@ void memory_map(uint32_t* root_pd, uint32_t* phys,
 	if (root_pd[pd_index] == 0) {
 	       	create_new_pt(root_pd, pd_index);
 	}
-	
+		
 	uint32_t* page_table = (uint32_t*) (RECURSIVE_ADDR | (pd_index << 12)); // Should be correct no matter what
-
 	if ((uint32_t)phys & 0x3FF) { log_to_serial("PHYSICAL ADDRESS NOT PAGE ALIGNED\n"); return;}
 
 	page_table[pt_index] = (uint32_t)phys | flags;	
@@ -54,7 +53,7 @@ uint32_t* create_new_pt(uint32_t* root_pd, uint32_t pd_index)
 	// Recursive paging :3c
 	
 	log_to_serial("CREATING NEW PT\n");
-
+	
 	uint32_t* page_table = (uint32_t*) VIRTADDR((uint32_t)root_pd[1023]);
 
 	uint32_t* new_pt = (uint32_t *) alloc_phys_page();
@@ -62,7 +61,7 @@ uint32_t* create_new_pt(uint32_t* root_pd, uint32_t pd_index)
 	page_table[pd_index] = (uint32_t) new_pt | 3;
 
 	root_pd[pd_index] = (uint32_t) new_pt | 3;
-	log_to_serial("New PT Created!\n");
+	logf("New PT created at entry %d\n", pd_index);
 	
 	uint32_t* virt_pt = (uint32_t*) (RECURSIVE_ADDR | (pd_index << 12));
 	
@@ -122,19 +121,21 @@ void enable_paging_c(void)
 
 uint8_t handle_exception(struct isr_frame *frame)
 {
-	log_to_serial("WELCOME TO PAGINGFAULT\n");
+	//log_to_serial("WELCOME TO PAGINGFAULT\n");
 	uint32_t code = frame->isr_err;
 	if (code & 1) { log_to_serial("404: Page not found\n"); }
-	if (code & 2) { log_to_serial("Write access\n"); }
+	if (code & 2) { }//log_to_serial("Write access\n"); }
 	if (code & 4) { log_to_serial("CPL = 3 error, could be privilege\n"); }
 	if (code & 8) { log_to_serial("Reserved Write\n"); }	
 	if (code & 0x10) { log_to_serial("Instruction Fetch\n"); }
 	if (code & 0x20) { log_to_serial("Protection Fault\n"); }
 	if (code & 0x40) { log_to_serial("Shadow Stack\n"); }
-	log_to_serial("CR2 Dump: ");
-	print_hex((uint64_t)frame->cr2);
-	log_to_serial("\n");
-	return 0;
+	if (!(code & ~2)) {
+		memory_map(kernel_pd, alloc_phys_page(), (uint32_t*)frame->cr2, 0x3);
+		return 0;
+	}
+
+	return 1;
 }
 
 uint32_t* pg_init(uintptr_t *entry_pd)

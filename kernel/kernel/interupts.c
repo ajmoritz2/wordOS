@@ -67,8 +67,9 @@ void init_idt()
 	asm volatile ("sti"); // Interupt flag
 }
 
-void exc_print(struct isr_frame *frame)
+uint8_t exc_print(struct isr_frame *frame)
 {
+	uint32_t code = 1;
 	switch (frame->isr_no) {
 		case 0x00:
 			log_to_serial("Division by zero in kernel space!\n");
@@ -80,13 +81,15 @@ void exc_print(struct isr_frame *frame)
 			log_to_serial("Double fault in kernel space!\n");
 			break;
 		case 0x0E:
-			handle_exception(frame);
+			code = handle_exception(frame);
 			break;
 		default:
 			log_integer_to_serial(frame->isr_no);
 			log_to_serial("\n");
 			break;
 	}
+
+	return code;
 }
 
 
@@ -94,7 +97,9 @@ void exc_print(struct isr_frame *frame)
 void isr_handler(struct isr_frame frame)
 {
 	if (frame.isr_no < 32) {
-		exc_print(&frame);
+		if (exc_print(&frame) == 0) {
+			return;
+		}
 	}
 	asm volatile("cli\n\
 			hlt");

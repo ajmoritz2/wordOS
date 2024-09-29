@@ -32,4 +32,6 @@ void set_current_vmm(vmm*);
 
 void* vmm_alloc(size_t length, size_t flags, void* args); // Allocate a vm obj and push it to the current vmm.
 
+void free(uintptr_t addr);
+
 #endif
