@@ -14,11 +14,11 @@ mb2_hdr_begin:
 .long -(MAGIC_NUMBER + (mb2_hdr_end - mb2_hdr_begin))
 mb2_frame_buffer_req:
 	.short 0x05 # Tag identifier
-	.short 0x2 # Flag 
+	.short 0x1 # Flag 
 	.long (mb2_framebuffer_end - mb2_frame_buffer_req) # Should be 20 if I read the docs correct
 	.long 0
 	.long 0
-	.long 32
+	.long 0
 mb2_framebuffer_end: # Puts in an address space
 .align 8
 # the end tag: type = 0, size = 8
@@ -32,9 +32,8 @@ mb2_hdr_end:
 # STARTING SHIM PORTION
 # init all the stack
 .section .bootstrap_stack, "aw", @nobits
-.align 16
 boot_stack_base:
-	.skip  16383 # 16 KiB
+	.skip  16384 # 16 KiB
 stack_top:
 
 # create paging dir
@@ -43,7 +42,7 @@ stack_top:
 boot_page_directory:
 	.skip 4096 # Its 3 KiB long
 boot_page_table1:
-	.skip 4096*5  # I think this ends up being 5 pages allocated?
+	.skip 4096  # I think this ends up being 5 pages allocated?
 
 .section .multiboot.text, "a"
 .global _start
@@ -103,7 +102,6 @@ _start:
 	movl %cr3, %ecx
 	movl %ecx, %cr3
 
-
 	pushl %ebx
 	pushl $(boot_page_directory)
 	# Transfer control to the main kernel
@@ -121,7 +119,7 @@ _start:
 load_directory:
 	push %ebp
 	mov %esp, %ebp
-	mov 8(%esp), %eax
+	mov 8(%ebp), %eax
 	mov %eax, %cr3
 	mov %ebp, %esp
 	pop %ebp

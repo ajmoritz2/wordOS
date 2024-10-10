@@ -14,9 +14,16 @@ extern uint32_t _kernel_end;
 #define KBASE &_kernel_end
 #define PHYSTOP ((uint32_t)(KBASE + 128*1024*1024))
 
+void outportb(int portnum, unsigned char data);
 void log_to_serial (char* number);
 void log_integer_to_serial (uint64_t number);
 void print_hex (uint64_t number);
 void logf(char*, ...);
+uint32_t get_stackp();
+
+static inline void io_wait(void)
+{
+    outportb(0x80, 0);
+}
 
 #endif

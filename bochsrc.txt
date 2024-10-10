@@ -728,7 +728,7 @@ private_colormap: enabled=0
 # Example:
 #   magic_break: enabled=1
 #=======================================================================
-#magic_break: enabled=1
+magic_break: enabled=1
 
 #=======================================================================
 # DEBUG_SYMBOLS:

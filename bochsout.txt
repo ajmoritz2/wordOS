@@ -38,7 +38,7 @@
 00000000000i[USBCTL] Pluggable USB devices
 00000000000i[USBCTL]   floppy mouse tablet keypad keyboard hub disk cdrom
 00000000000i[USBCTL]   printer
-00000000000i[MEM0  ] allocated memory at 0x7796e2a00010. after alignment, vector=0x7796e2a01000, block_size = 128K
+00000000000i[MEM0  ] allocated memory at 0x7f9bd0600010. after alignment, vector=0x7f9bd0601000, block_size = 128K
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/usr/share/bochs/BIOS-bochs-latest')
@@ -50,7 +50,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Sun Sep 29 13:02:10   2024 tz=utc (time0=1727614930)
+00000000000i[CMOS  ] Setting initial clock to: Wed Oct  9 16:10:08   2024 tz=utc (time0=1728490208)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -241,58 +241,348 @@
 00001784230i[BIOS  ] ata0-0: PCHS=56/16/63 translation=none LCHS=56/16/63
 00005217189i[BIOS  ] IDE time out
 00035221075i[BIOS  ] Booting from 0000:7c00
-00149917157i[BXVGA ] VBE set bpp (32)
-00149917169i[BXVGA ] VBE set xres (1920)
-00149917181i[BXVGA ] VBE set yres (1200)
-00149917264i[BXVGA ] VBE enabling x 1920, y 1200, bpp 32, 9216000 bytes visible
-00187838155e[SER   ] com1: write to tx hold register when not empty
-00187838178e[SER   ] com1: write to tx hold register when not empty
-00187838201e[SER   ] com1: write to tx hold register when not empty
-00187838224e[SER   ] com1: write to tx hold register when not empty
-00187838247e[SER   ] com1: write to tx hold register when not empty
-00187838270e[SER   ] com1: write to tx hold register when not empty
-00187838293e[SER   ] com1: write to tx hold register when not empty
-00187838316e[SER   ] com1: write to tx hold register when not empty
-00187838339e[SER   ] com1: write to tx hold register when not empty
-00187838384e[SER   ] com1: write to tx hold register when not empty
-00187838407e[SER   ] com1: write to tx hold register when not empty
-00187838430e[SER   ] com1: write to tx hold register when not empty
-00187838453e[SER   ] com1: write to tx hold register when not empty
-00187838476e[SER   ] com1: write to tx hold register when not empty
-00187838499e[SER   ] com1: write to tx hold register when not empty
-00187838522e[SER   ] com1: write to tx hold register when not empty
-00187838545e[SER   ] com1: write to tx hold register when not empty
-00187838568e[SER   ] com1: write to tx hold register when not empty
-00187838591e[SER   ] com1: write to tx hold register when not empty
-00187838614e[SER   ] com1: write to tx hold register when not empty
-00187838637e[SER   ] com1: write to tx hold register when not empty
-00187838660e[SER   ] com1: write to tx hold register when not empty
-00187838683e[SER   ] com1: write to tx hold register when not empty
-00187838706e[SER   ] com1: write to tx hold register when not empty
-00187838729e[SER   ] com1: write to tx hold register when not empty
-00187838752e[SER   ] com1: write to tx hold register when not empty
-00187838775e[SER   ] com1: write to tx hold register when not empty
-00187838798e[SER   ] com1: write to tx hold register when not empty
-00187838817i[CPU0  ] WARNING: HLT instruction with IF=0!
-14717130000i[      ] Ctrl-C detected in signal handler.
-14717130008i[      ] dbg: Quit
-14717130008i[CPU0  ] CPU is in protected mode (halted)
-14717130008i[CPU0  ] CS.mode = 32 bit
-14717130008i[CPU0  ] SS.mode = 32 bit
-14717130008i[CPU0  ] EFER   = 0x00000000
-14717130008i[CPU0  ] | EAX=00000000  EBX=00103220  ECX=00000ffc  EDX=000003f8
-14717130008i[CPU0  ] | ESP=c0111857  EBP=00000000  ESI=00112000  EDI=00106448
-14717130008i[CPU0  ] | IOPL=0 ID vip vif ac vm rf nt of df if tf SF zf af pf cf
-14717130008i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
-14717130008i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
-14717130008i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-14717130008i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-14717130008i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-14717130008i[CPU0  ] |  FS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-14717130008i[CPU0  ] |  GS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
-14717130008i[CPU0  ] | EIP=c010101d (c010101d)
-14717130008i[CPU0  ] | CR0=0xe0000011 CR2=0x00000000
-14717130008i[CPU0  ] | CR3=0x0010b000 CR4=0x00000000
-14717130008i[CMOS  ] Last time: 1727616401 tz=utc (Sun Sep 29 13:26:41   2024)
-14717130008i[XGUI  ] Exit
-14717130008i[SIM   ] quit_sim called with exit code 0
+00148897007i[BXVGA ] VBE set bpp (32)
+00148897019i[BXVGA ] VBE set xres (1920)
+00148897031i[BXVGA ] VBE set yres (1200)
+00148897114i[BXVGA ] VBE enabling x 1920, y 1200, bpp 32, 9216000 bytes visible
+00186703108i[CPU0  ] [186703108] Stopped on MAGIC BREAKPOINT
+00186703119p[PIC   ] >>PANIC<< master: slave PIC IRQ line not supported
+00186703158p[PIC   ] >>PANIC<< slave:  PIC ID = 4 not supported
+00186793604e[SER   ] com1: write to tx hold register when not empty
+00186793633e[SER   ] com1: write to tx hold register when not empty
+00186793662e[SER   ] com1: write to tx hold register when not empty
+00186793691e[SER   ] com1: write to tx hold register when not empty
+00186793720e[SER   ] com1: write to tx hold register when not empty
+00186793893e[SER   ] com1: write to tx hold register when not empty
+00186793916e[SER   ] com1: write to tx hold register when not empty
+00186793961e[SER   ] com1: write to tx hold register when not empty
+00186818843e[SER   ] com1: write to tx hold register when not empty
+00186818866e[SER   ] com1: write to tx hold register when not empty
+00186818889e[SER   ] com1: write to tx hold register when not empty
+00186818912e[SER   ] com1: write to tx hold register when not empty
+00186818935e[SER   ] com1: write to tx hold register when not empty
+00186818958e[SER   ] com1: write to tx hold register when not empty
+00186818981e[SER   ] com1: write to tx hold register when not empty
+00186819004e[SER   ] com1: write to tx hold register when not empty
+00186819027e[SER   ] com1: write to tx hold register when not empty
+00186838487e[SER   ] com1: write to tx hold register when not empty
+00186838510e[SER   ] com1: write to tx hold register when not empty
+00186838533e[SER   ] com1: write to tx hold register when not empty
+00186838556e[SER   ] com1: write to tx hold register when not empty
+00186838579e[SER   ] com1: write to tx hold register when not empty
+00186838602e[SER   ] com1: write to tx hold register when not empty
+00186838625e[SER   ] com1: write to tx hold register when not empty
+00186838648e[SER   ] com1: write to tx hold register when not empty
+00186838671e[SER   ] com1: write to tx hold register when not empty
+00186838694e[SER   ] com1: write to tx hold register when not empty
+00186838717e[SER   ] com1: write to tx hold register when not empty
+00186838740e[SER   ] com1: write to tx hold register when not empty
+00186838763e[SER   ] com1: write to tx hold register when not empty
+00186838786e[SER   ] com1: write to tx hold register when not empty
+00186846226e[SER   ] com1: write to tx hold register when not empty
+00186846255e[SER   ] com1: write to tx hold register when not empty
+00186846284e[SER   ] com1: write to tx hold register when not empty
+00186846313e[SER   ] com1: write to tx hold register when not empty
+00186846342e[SER   ] com1: write to tx hold register when not empty
+00186846371e[SER   ] com1: write to tx hold register when not empty
+00186846400e[SER   ] com1: write to tx hold register when not empty
+00186846429e[SER   ] com1: write to tx hold register when not empty
+00186846458e[SER   ] com1: write to tx hold register when not empty
+00186846487e[SER   ] com1: write to tx hold register when not empty
+00186846516e[SER   ] com1: write to tx hold register when not empty
+00186846545e[SER   ] com1: write to tx hold register when not empty
+00186846574e[SER   ] com1: write to tx hold register when not empty
+00186846603e[SER   ] com1: write to tx hold register when not empty
+00186846632e[SER   ] com1: write to tx hold register when not empty
+00186846661e[SER   ] com1: write to tx hold register when not empty
+00186846690e[SER   ] com1: write to tx hold register when not empty
+00186846719e[SER   ] com1: write to tx hold register when not empty
+00186846748e[SER   ] com1: write to tx hold register when not empty
+00186846777e[SER   ] com1: write to tx hold register when not empty
+00186846806e[SER   ] com1: write to tx hold register when not empty
+00186846835e[SER   ] com1: write to tx hold register when not empty
+00186847108e[SER   ] com1: write to tx hold register when not empty
+00186847131e[SER   ] com1: write to tx hold register when not empty
+00186847154e[SER   ] com1: write to tx hold register when not empty
+00186847199e[SER   ] com1: write to tx hold register when not empty
+00186847281i[CPU0  ] RDMSR: Read 00000000:fee00900 from MSR_APICBASE
+00186847323e[SER   ] com1: write to tx hold register when not empty
+00186847352e[SER   ] com1: write to tx hold register when not empty
+00186847381e[SER   ] com1: write to tx hold register when not empty
+00186847410e[SER   ] com1: write to tx hold register when not empty
+00186847439e[SER   ] com1: write to tx hold register when not empty
+00186847468e[SER   ] com1: write to tx hold register when not empty
+00186847497e[SER   ] com1: write to tx hold register when not empty
+00186847526e[SER   ] com1: write to tx hold register when not empty
+00186847555e[SER   ] com1: write to tx hold register when not empty
+00186847584e[SER   ] com1: write to tx hold register when not empty
+00186847613e[SER   ] com1: write to tx hold register when not empty
+00186847642e[SER   ] com1: write to tx hold register when not empty
+00186847991e[SER   ] com1: write to tx hold register when not empty
+00186848014e[SER   ] com1: write to tx hold register when not empty
+00186848037e[SER   ] com1: write to tx hold register when not empty
+00186848060e[SER   ] com1: write to tx hold register when not empty
+00186848083e[SER   ] com1: write to tx hold register when not empty
+00186848106e[SER   ] com1: write to tx hold register when not empty
+00186848129e[SER   ] com1: write to tx hold register when not empty
+00186848152e[SER   ] com1: write to tx hold register when not empty
+00186848175e[SER   ] com1: write to tx hold register when not empty
+00186848220e[SER   ] com1: write to tx hold register when not empty
+00186848292e[SER   ] com1: write to tx hold register when not empty
+00186848315e[SER   ] com1: write to tx hold register when not empty
+00186848338e[SER   ] com1: write to tx hold register when not empty
+00186848361e[SER   ] com1: write to tx hold register when not empty
+00186848384e[SER   ] com1: write to tx hold register when not empty
+00186848407e[SER   ] com1: write to tx hold register when not empty
+00186848430e[SER   ] com1: write to tx hold register when not empty
+00186848453e[SER   ] com1: write to tx hold register when not empty
+00186848476e[SER   ] com1: write to tx hold register when not empty
+00186848499e[SER   ] com1: write to tx hold register when not empty
+00186848522e[SER   ] com1: write to tx hold register when not empty
+00186848545e[SER   ] com1: write to tx hold register when not empty
+00186848568e[SER   ] com1: write to tx hold register when not empty
+00186848591e[SER   ] com1: write to tx hold register when not empty
+00186848614e[SER   ] com1: write to tx hold register when not empty
+00186848637e[SER   ] com1: write to tx hold register when not empty
+00186856094e[SER   ] com1: write to tx hold register when not empty
+00186856123e[SER   ] com1: write to tx hold register when not empty
+00186856152e[SER   ] com1: write to tx hold register when not empty
+00186856181e[SER   ] com1: write to tx hold register when not empty
+00186856210e[SER   ] com1: write to tx hold register when not empty
+00186856239e[SER   ] com1: write to tx hold register when not empty
+00186856268e[SER   ] com1: write to tx hold register when not empty
+00186856297e[SER   ] com1: write to tx hold register when not empty
+00186856326e[SER   ] com1: write to tx hold register when not empty
+00186856355e[SER   ] com1: write to tx hold register when not empty
+00186856384e[SER   ] com1: write to tx hold register when not empty
+00186856413e[SER   ] com1: write to tx hold register when not empty
+00186856442e[SER   ] com1: write to tx hold register when not empty
+00186856471e[SER   ] com1: write to tx hold register when not empty
+00186856500e[SER   ] com1: write to tx hold register when not empty
+00186856529e[SER   ] com1: write to tx hold register when not empty
+00186856558e[SER   ] com1: write to tx hold register when not empty
+00186856587e[SER   ] com1: write to tx hold register when not empty
+00186856616e[SER   ] com1: write to tx hold register when not empty
+00186856645e[SER   ] com1: write to tx hold register when not empty
+00186856674e[SER   ] com1: write to tx hold register when not empty
+00186856703e[SER   ] com1: write to tx hold register when not empty
+00186856976e[SER   ] com1: write to tx hold register when not empty
+00186856999e[SER   ] com1: write to tx hold register when not empty
+00186857022e[SER   ] com1: write to tx hold register when not empty
+00186857067e[SER   ] com1: write to tx hold register when not empty
+00186857373e[SER   ] com1: write to tx hold register when not empty
+00186857402e[SER   ] com1: write to tx hold register when not empty
+00186857431e[SER   ] com1: write to tx hold register when not empty
+00186857460e[SER   ] com1: write to tx hold register when not empty
+00186857489e[SER   ] com1: write to tx hold register when not empty
+00186857518e[SER   ] com1: write to tx hold register when not empty
+00186857547e[SER   ] com1: write to tx hold register when not empty
+00186857576e[SER   ] com1: write to tx hold register when not empty
+00186857605e[SER   ] com1: write to tx hold register when not empty
+00186857634e[SER   ] com1: write to tx hold register when not empty
+00186857663e[SER   ] com1: write to tx hold register when not empty
+00186857692e[SER   ] com1: write to tx hold register when not empty
+00186857721e[SER   ] com1: write to tx hold register when not empty
+00186857750e[SER   ] com1: write to tx hold register when not empty
+00186857808e[SER   ] com1: write to tx hold register when not empty
+00186857837e[SER   ] com1: write to tx hold register when not empty
+00186857866e[SER   ] com1: write to tx hold register when not empty
+00186857895e[SER   ] com1: write to tx hold register when not empty
+00186857924e[SER   ] com1: write to tx hold register when not empty
+00186857953e[SER   ] com1: write to tx hold register when not empty
+00186857982e[SER   ] com1: write to tx hold register when not empty
+00186858145e[SER   ] com1: write to tx hold register when not empty
+00186858174e[SER   ] com1: write to tx hold register when not empty
+00186858203e[SER   ] com1: write to tx hold register when not empty
+00186858232e[SER   ] com1: write to tx hold register when not empty
+00186858261e[SER   ] com1: write to tx hold register when not empty
+00186858290e[SER   ] com1: write to tx hold register when not empty
+00186858319e[SER   ] com1: write to tx hold register when not empty
+00186858348e[SER   ] com1: write to tx hold register when not empty
+00186858377e[SER   ] com1: write to tx hold register when not empty
+00186858406e[SER   ] com1: write to tx hold register when not empty
+00186858553e[SER   ] com1: write to tx hold register when not empty
+00186858576e[SER   ] com1: write to tx hold register when not empty
+00186858599e[SER   ] com1: write to tx hold register when not empty
+00186858622e[SER   ] com1: write to tx hold register when not empty
+00186858735e[SER   ] com1: write to tx hold register when not empty
+00186858764e[SER   ] com1: write to tx hold register when not empty
+00186858793e[SER   ] com1: write to tx hold register when not empty
+00186858822e[SER   ] com1: write to tx hold register when not empty
+00186858851e[SER   ] com1: write to tx hold register when not empty
+00186858880e[SER   ] com1: write to tx hold register when not empty
+00186858909e[SER   ] com1: write to tx hold register when not empty
+00186858938e[SER   ] com1: write to tx hold register when not empty
+00186858967e[SER   ] com1: write to tx hold register when not empty
+00186858996e[SER   ] com1: write to tx hold register when not empty
+00186859025e[SER   ] com1: write to tx hold register when not empty
+00186859054e[SER   ] com1: write to tx hold register when not empty
+00186859083e[SER   ] com1: write to tx hold register when not empty
+00186859112e[SER   ] com1: write to tx hold register when not empty
+00186859141e[SER   ] com1: write to tx hold register when not empty
+00186859170e[SER   ] com1: write to tx hold register when not empty
+00186859199e[SER   ] com1: write to tx hold register when not empty
+00186859228e[SER   ] com1: write to tx hold register when not empty
+00186859257e[SER   ] com1: write to tx hold register when not empty
+00186859286e[SER   ] com1: write to tx hold register when not empty
+00186859315e[SER   ] com1: write to tx hold register when not empty
+00186859398e[SER   ] com1: write to tx hold register when not empty
+00186859444e[SER   ] com1: write to tx hold register when not empty
+00186859553e[SER   ] com1: write to tx hold register when not empty
+00186859576e[SER   ] com1: write to tx hold register when not empty
+00186859599e[SER   ] com1: write to tx hold register when not empty
+00186859622e[SER   ] com1: write to tx hold register when not empty
+00186859645e[SER   ] com1: write to tx hold register when not empty
+00186859668e[SER   ] com1: write to tx hold register when not empty
+00186859691e[SER   ] com1: write to tx hold register when not empty
+00186859714e[SER   ] com1: write to tx hold register when not empty
+00186859737e[SER   ] com1: write to tx hold register when not empty
+00186859760e[SER   ] com1: write to tx hold register when not empty
+00186859783e[SER   ] com1: write to tx hold register when not empty
+00186859806e[SER   ] com1: write to tx hold register when not empty
+00186859829e[SER   ] com1: write to tx hold register when not empty
+00186859852e[SER   ] com1: write to tx hold register when not empty
+00186859875e[SER   ] com1: write to tx hold register when not empty
+00186867349e[SER   ] com1: write to tx hold register when not empty
+00186867378e[SER   ] com1: write to tx hold register when not empty
+00186867407e[SER   ] com1: write to tx hold register when not empty
+00186867436e[SER   ] com1: write to tx hold register when not empty
+00186867465e[SER   ] com1: write to tx hold register when not empty
+00186867494e[SER   ] com1: write to tx hold register when not empty
+00186867523e[SER   ] com1: write to tx hold register when not empty
+00186867552e[SER   ] com1: write to tx hold register when not empty
+00186867581e[SER   ] com1: write to tx hold register when not empty
+00186867610e[SER   ] com1: write to tx hold register when not empty
+00186867639e[SER   ] com1: write to tx hold register when not empty
+00186867668e[SER   ] com1: write to tx hold register when not empty
+00186867697e[SER   ] com1: write to tx hold register when not empty
+00186867726e[SER   ] com1: write to tx hold register when not empty
+00186867755e[SER   ] com1: write to tx hold register when not empty
+00186867784e[SER   ] com1: write to tx hold register when not empty
+00186867813e[SER   ] com1: write to tx hold register when not empty
+00186867842e[SER   ] com1: write to tx hold register when not empty
+00186867871e[SER   ] com1: write to tx hold register when not empty
+00186867900e[SER   ] com1: write to tx hold register when not empty
+00186867929e[SER   ] com1: write to tx hold register when not empty
+00186867958e[SER   ] com1: write to tx hold register when not empty
+00186868204e[SER   ] com1: write to tx hold register when not empty
+00186868227e[SER   ] com1: write to tx hold register when not empty
+00186868272e[SER   ] com1: write to tx hold register when not empty
+00186924690e[SER   ] com1: write to tx hold register when not empty
+00186924713e[SER   ] com1: write to tx hold register when not empty
+00186924736e[SER   ] com1: write to tx hold register when not empty
+00186924759e[SER   ] com1: write to tx hold register when not empty
+00186924782e[SER   ] com1: write to tx hold register when not empty
+00186924805e[SER   ] com1: write to tx hold register when not empty
+00186924828e[SER   ] com1: write to tx hold register when not empty
+00186924851e[SER   ] com1: write to tx hold register when not empty
+00186924874e[SER   ] com1: write to tx hold register when not empty
+00186924897e[SER   ] com1: write to tx hold register when not empty
+00186924920e[SER   ] com1: write to tx hold register when not empty
+00186924943e[SER   ] com1: write to tx hold register when not empty
+00186924966e[SER   ] com1: write to tx hold register when not empty
+00186924989e[SER   ] com1: write to tx hold register when not empty
+00186932480e[SER   ] com1: write to tx hold register when not empty
+00186932509e[SER   ] com1: write to tx hold register when not empty
+00186932538e[SER   ] com1: write to tx hold register when not empty
+00186932567e[SER   ] com1: write to tx hold register when not empty
+00186932596e[SER   ] com1: write to tx hold register when not empty
+00186932625e[SER   ] com1: write to tx hold register when not empty
+00186932654e[SER   ] com1: write to tx hold register when not empty
+00186932683e[SER   ] com1: write to tx hold register when not empty
+00186932712e[SER   ] com1: write to tx hold register when not empty
+00186932741e[SER   ] com1: write to tx hold register when not empty
+00186932770e[SER   ] com1: write to tx hold register when not empty
+00186932799e[SER   ] com1: write to tx hold register when not empty
+00186932828e[SER   ] com1: write to tx hold register when not empty
+00186932857e[SER   ] com1: write to tx hold register when not empty
+00186932886e[SER   ] com1: write to tx hold register when not empty
+00186932915e[SER   ] com1: write to tx hold register when not empty
+00186932944e[SER   ] com1: write to tx hold register when not empty
+00186932973e[SER   ] com1: write to tx hold register when not empty
+00186933002e[SER   ] com1: write to tx hold register when not empty
+00186933031e[SER   ] com1: write to tx hold register when not empty
+00186933060e[SER   ] com1: write to tx hold register when not empty
+00186933089e[SER   ] com1: write to tx hold register when not empty
+00186933335e[SER   ] com1: write to tx hold register when not empty
+00186933358e[SER   ] com1: write to tx hold register when not empty
+00186933403e[SER   ] com1: write to tx hold register when not empty
+00186989821e[SER   ] com1: write to tx hold register when not empty
+00186989844e[SER   ] com1: write to tx hold register when not empty
+00186989867e[SER   ] com1: write to tx hold register when not empty
+00186989890e[SER   ] com1: write to tx hold register when not empty
+00186989913e[SER   ] com1: write to tx hold register when not empty
+00186989936e[SER   ] com1: write to tx hold register when not empty
+00186989959e[SER   ] com1: write to tx hold register when not empty
+00186989982e[SER   ] com1: write to tx hold register when not empty
+00186990005e[SER   ] com1: write to tx hold register when not empty
+00186990028e[SER   ] com1: write to tx hold register when not empty
+00186990051e[SER   ] com1: write to tx hold register when not empty
+00186990074e[SER   ] com1: write to tx hold register when not empty
+00186990097e[SER   ] com1: write to tx hold register when not empty
+00186990120e[SER   ] com1: write to tx hold register when not empty
+00186997628e[SER   ] com1: write to tx hold register when not empty
+00186997657e[SER   ] com1: write to tx hold register when not empty
+00186997686e[SER   ] com1: write to tx hold register when not empty
+00186997715e[SER   ] com1: write to tx hold register when not empty
+00186997744e[SER   ] com1: write to tx hold register when not empty
+00186997773e[SER   ] com1: write to tx hold register when not empty
+00186997802e[SER   ] com1: write to tx hold register when not empty
+00186997831e[SER   ] com1: write to tx hold register when not empty
+00186997860e[SER   ] com1: write to tx hold register when not empty
+00186997889e[SER   ] com1: write to tx hold register when not empty
+00186997918e[SER   ] com1: write to tx hold register when not empty
+00186997947e[SER   ] com1: write to tx hold register when not empty
+00186997976e[SER   ] com1: write to tx hold register when not empty
+00186998005e[SER   ] com1: write to tx hold register when not empty
+00186998034e[SER   ] com1: write to tx hold register when not empty
+00186998063e[SER   ] com1: write to tx hold register when not empty
+00186998092e[SER   ] com1: write to tx hold register when not empty
+00186998121e[SER   ] com1: write to tx hold register when not empty
+00186998150e[SER   ] com1: write to tx hold register when not empty
+00186998179e[SER   ] com1: write to tx hold register when not empty
+00186998208e[SER   ] com1: write to tx hold register when not empty
+00186998237e[SER   ] com1: write to tx hold register when not empty
+00186998483e[SER   ] com1: write to tx hold register when not empty
+00186998506e[SER   ] com1: write to tx hold register when not empty
+00186998551e[SER   ] com1: write to tx hold register when not empty
+00223853890e[SER   ] com1: write to tx hold register when not empty
+00223853913e[SER   ] com1: write to tx hold register when not empty
+00223853936e[SER   ] com1: write to tx hold register when not empty
+00223853959e[SER   ] com1: write to tx hold register when not empty
+00223853982e[SER   ] com1: write to tx hold register when not empty
+00223854005e[SER   ] com1: write to tx hold register when not empty
+00223854028e[SER   ] com1: write to tx hold register when not empty
+00223854051e[SER   ] com1: write to tx hold register when not empty
+00223854074e[SER   ] com1: write to tx hold register when not empty
+00223854097e[SER   ] com1: write to tx hold register when not empty
+00223854120e[SER   ] com1: write to tx hold register when not empty
+00223854143e[SER   ] com1: write to tx hold register when not empty
+00223854166e[SER   ] com1: write to tx hold register when not empty
+00223854189e[SER   ] com1: write to tx hold register when not empty
+00223854212e[SER   ] com1: write to tx hold register when not empty
+00223854235e[SER   ] com1: write to tx hold register when not empty
+00223854258e[SER   ] com1: write to tx hold register when not empty
+00223854277i[CPU0  ] WARNING: HLT instruction with IF=0!
+39647639528i[      ] Ctrl-C detected in signal handler.
+39647639538i[      ] dbg: Quit
+39647639538i[CPU0  ] CPU is in protected mode (halted)
+39647639538i[CPU0  ] CS.mode = 32 bit
+39647639538i[CPU0  ] SS.mode = 32 bit
+39647639538i[CPU0  ] EFER   = 0x00000000
+39647639538i[CPU0  ] | EAX=00000000  EBX=001032a0  ECX=00001e00  EDX=000003f8
+39647639538i[CPU0  ] | ESP=c010d85c  EBP=00000000  ESI=0010e000  EDI=00106438
+39647639538i[CPU0  ] | IOPL=0 ID vip vif ac vm rf nt of df if tf SF zf af PF cf
+39647639538i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+39647639538i[CPU0  ] |  CS:0008( 0001| 0|  0) 00000000 ffffffff 1 1
+39647639538i[CPU0  ] |  DS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+39647639538i[CPU0  ] |  SS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+39647639538i[CPU0  ] |  ES:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+39647639538i[CPU0  ] |  FS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+39647639538i[CPU0  ] |  GS:0010( 0002| 0|  0) 00000000 ffffffff 1 1
+39647639538i[CPU0  ] | EIP=c010101d (c010101d)
+39647639538i[CPU0  ] | CR0=0xe0000011 CR2=0x00000000
+39647639538i[CPU0  ] | CR3=0x00107000 CR4=0x00000000
+39647639538i[CMOS  ] Last time: 1728494172 tz=utc (Wed Oct  9 17:16:12   2024)
+39647639538i[XGUI  ] Exit
+39647639538i[SIM   ] quit_sim called with exit code 0

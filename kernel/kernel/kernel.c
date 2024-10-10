@@ -1,14 +1,15 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdarg.h>
-#include "interupts.h"
+#include "idt.h"
 #include "gdt.h"
 #include "kernel.h"
-#include "header/string.h"
-#include "header/pfa.h"
-#include "header/paging.h"
-#include "header/vmm.h"
-#include "header/multiboot_parse.h"
+#include "../memory/string.h"
+#include "../memory/pmm.h"
+#include "../memory/paging.h"
+#include "../memory/vmm.h"
+#include "../drivers/apic.h"
+#include "../multiboot/mb_parse.h"
 
 
 
@@ -145,34 +146,34 @@ void logf(char *string, ...)
 
 uint32_t get_stackp() 
 {
-	uint32_t esp;
-	asm ("mov %%esp, %0" : "=r"(esp));
-	return esp;
+	return 0;
 }
 
 // MAIN SECTION OF KERNEL
 
 void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc) 
 {
-	logf("STACK AT: %x\n", get_stackp());
+	// TODO: Set the PIC properly. Timer is running out, so 0x08 is being called!
 	if (multiboot_loc & 7)
 	{
 		log_to_serial("ERROR\n");
 		return;
 	}
+	
+	disable_pic();
 	uint32_t* kpd = pg_init(entry_pd);
 	gdt_install();
 	init_idt();
-	init_serial();
 	kinit();
 	
 	vmm* kvmm = create_vmm(kpd);
 	set_current_vmm(kvmm);
+	
+	init_apic(kvmm);
 
-	init_multiboot(kvmm, multiboot_loc + 0xC0000000);
-	//asm volatile("int $0x06");
+//	asm volatile("int $0x7");
+	init_multiboot(multiboot_loc + 0xC0000000);
 
 	log_to_serial("\nPROGRAM TO HALT! \n");
 
-	logf("STACK AT: %x\n", get_stackp());
 }

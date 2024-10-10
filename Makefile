@@ -1,5 +1,8 @@
 ARCHDIR?=kernel/arch/i386
 KERNELDIR?=kernel/kernel
+MEMDIR?=kernel/memory
+MBDIR?=kernel/multiboot
+DRIVERDIR?=kernel/drivers
 
 CFLAGS:=-ffreestanding -std=gnu99
 CC=i686-elf-gcc
@@ -12,14 +15,15 @@ KERNELC?=kernel.c
 
 OBJS=\
      $(ARCHDIR)/bootNP.o \
-     $(KERNELDIR)/paging.o \
-     $(KERNELDIR)/string.o \
-     $(KERNELDIR)/pfa.o \
+     $(MEMDIR)/paging.o \
+     $(MEMDIR)/string.o \
+     $(MEMDIR)/pmm.o \
      $(KERNELDIR)/gdt.o \
      $(KERNELDIR)/idtStub.o \
-     $(KERNELDIR)/interupts.o \
-     $(KERNELDIR)/multiboot_parse.o \
-     $(KERNELDIR)/vmm.o \
+     $(KERNELDIR)/idt.o \
+     $(MEMDIR)/vmm.o \
+     $(MBDIR)/mb_parse.o \
+     $(DRIVERDIR)/apic.o \
      $(KERNELDIR)/kernel.o
 
 .PHONY: all

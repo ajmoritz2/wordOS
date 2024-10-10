@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include "gdt.h"
 #include "kernel.h"
-#include "header/paging.h"
 
 struct gdt_entry desc[5];
 struct GDTR gp;
