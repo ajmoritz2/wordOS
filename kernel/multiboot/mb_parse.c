@@ -15,6 +15,7 @@
 #include <stdint.h>
 
 extern vmm* current_vmm;
+struct ACPISDTHeader* rsdt_addr;
 
 struct multiboot_tag_framebuffer* fb;
 struct multiboot_tag_old_acpi* old_acpi;
@@ -62,7 +63,7 @@ uint8_t validate_RSDP(char *byte_array, size_t size) {
 	return (sum & 0xFF) == 0;
 }
 
-void* get_sdt_by_signature(struct ACPISDTHeader* rsdt_addr, char* signature)
+void* get_sdt_by_signature(char* signature)
 {
 	struct RSDT {
 		struct ACPISDTHeader h;
@@ -95,9 +96,9 @@ void init_rsdt_v1()
 		return;
 	}
 
-	struct ACPISDTHeader* head = (struct ACPISDTHeader *) rsdp_d->RsdtAddress;
-	memory_map(current_vmm->root_pd, (uint32_t*)((uint32_t)head & ~0xFFF), (uint32_t*)((uint32_t) head & ~0xFFF), 0x1);	
-	logf("APIC Table found at %x \n", get_sdt_by_signature(head, "APIC"));
+	rsdt_addr = (struct ACPISDTHeader *) rsdp_d->RsdtAddress;
+	memory_map(current_vmm->root_pd, (uint32_t*)((uint32_t)rsdt_addr & ~0xFFF), (uint32_t*)((uint32_t) rsdt_addr & ~0xFFF), 0x1);	
+//	logf("APIC Table found at %x \n", get_sdt_by_signature(head, "APIC"));
 }
 
 
@@ -123,8 +124,8 @@ void init_multiboot(uint32_t addr)
 				break;
 		}
 	}
-	
-	init_rsdt_v1();	
+	if (old_acpi)	
+		init_rsdt_v1();	
 	
 
 	return;

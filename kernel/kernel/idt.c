@@ -4,7 +4,9 @@
 #include "kernel.h"
 #include "../memory/paging.h"
 #include "../memory/string.h"
+#include "../drivers/apic.h"
 
+extern uint32_t* glob_apic_addr;
 
 __attribute__((aligned(0x0010)))
 static idt_entry idt[256];
@@ -60,6 +62,7 @@ void init_idt()
 	idt_set_gate(0x1E, (uint32_t)isr_stub_30, 0x80 | 0x0E);
 	idt_set_gate(0x1F, (uint32_t)isr_stub_31, 0x80 | 0x0E);
 
+	idt_set_gate(0x30, (uint32_t)irq_stub_48, 0x80 | 0x0E);
 
 
 	log_to_serial("Loaded IDT\n");
@@ -93,7 +96,15 @@ uint8_t exc_print(struct isr_frame *frame)
 	return code;
 }
 
+void irq_handler(int num) {
 
+	if (num == 0x30) {
+		set_initial_timer_count(glob_apic_addr, 0xFFFFFFFF);
+		logf("Timer reset!\n");
+	}
+
+	send_EOI(glob_apic_addr); // THEY WILL QUEUE UP IF THIS ISN'T HERE!
+}
 
 void isr_handler(struct isr_frame frame)
 {
@@ -102,6 +113,7 @@ void isr_handler(struct isr_frame frame)
 			return;
 		}
 	}
+	logf("Silly interrupt happened I guess!\n");
 	asm volatile("cli\n\
 			hlt");
 }

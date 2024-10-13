@@ -19,6 +19,15 @@ isr_stub_\num:
 	jmp isr_frame_as
 .endm
 
+.macro irq_stub num 
+.global irq_stub_\num
+.type irq_stub_\num, @function
+irq_stub_\num:
+	cli
+	pushl $\num
+	jmp irq_frame
+.endm
+
 isr_frame_as:
 	pushl %eax
 	pushl %ebx
@@ -50,6 +59,12 @@ isr_frame_as:
 	popl %ebx
 	popl %eax
 	addl $8, %esp
+	sti
+	iret
+
+irq_frame:
+	call irq_handler
+	addl $4, %esp 
 	sti
 	iret
 
@@ -85,3 +100,5 @@ isr_no_err_stub 28
 isr_no_err_stub 29
 isr_err_stub    30
 isr_no_err_stub 31
+
+irq_stub 48

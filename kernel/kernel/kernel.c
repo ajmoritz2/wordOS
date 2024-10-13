@@ -168,12 +168,9 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	
 	vmm* kvmm = create_vmm(kpd);
 	set_current_vmm(kvmm);
-	
-	init_apic(kvmm);
-
-//	asm volatile("int $0x7");
 	init_multiboot(multiboot_loc + 0xC0000000);
-
+	init_apic(kvmm);
+	while (1){}
 	log_to_serial("\nPROGRAM TO HALT! \n");
 
 }

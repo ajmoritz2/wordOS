@@ -24,6 +24,7 @@ struct ACPISDTHeader {
 	uint32_t CreatorRevision;
 };
 
+void* get_sdt_by_signature(char* signature);
 
 void init_multiboot(uint32_t addr);
 
