@@ -12,6 +12,7 @@
 #include "../multiboot/mb_parse.h"
 
 
+static volatile uint32_t tester[1024];
 
 extern inline unsigned char inportb (int portnum)
 {
@@ -144,33 +145,36 @@ void logf(char *string, ...)
 	va_end(params);
 }
 
-uint32_t get_stackp() 
-{
-	return 0;
-}
+void panic(char* reason) {
+	logf(" << KERNEL PANIC >> Reason: %s\n", reason);
 
-// MAIN SECTION OF KERNEL
+	asm volatile ("cli \n\
+					hlt");
+}
 
 void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc) 
 {
-	// TODO: Set the PIC properly. Timer is running out, so 0x08 is being called!
 	if (multiboot_loc & 7)
 	{
 		log_to_serial("ERROR\n");
 		return;
 	}
 	
+	uint32_t* tag_size = (uint32_t*) (multiboot_loc + 0xC0000000);
+
 	disable_pic();
-	uint32_t* kpd = pg_init(entry_pd);
+	uint32_t* kpd = pg_init(entry_pd, *tag_size);
 	gdt_install();
 	init_idt();
-	kinit();
-	
-	vmm* kvmm = create_vmm(kpd);
+	uint32_t kalloc_bottom = kinit(tag_size); // Bandaid fix done here. Will bite me in the ass later...
+	vmm* kvmm = create_vmm(kpd, 0xCC000000, 0xFFE00000);
 	set_current_vmm(kvmm);
-	init_multiboot(multiboot_loc + 0xC0000000);
+
+	init_multiboot(multiboot_loc + 0xC0000000); // Must call before init_apic to properly parse. Must also be done after paging
+	
+	// Do everything you want with the multiboot tags before this point. Past here it will be overwritten.	
+	
 	init_apic(kvmm);
-	while (1){}
 	log_to_serial("\nPROGRAM TO HALT! \n");
 
 }

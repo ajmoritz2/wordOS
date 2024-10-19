@@ -24,8 +24,27 @@ struct ACPISDTHeader {
 	uint32_t CreatorRevision;
 };
 
+struct MADTEntryHead {
+	uint8_t EntryType;
+	uint8_t Length;
+};
+
+struct MADTEntryType0 {
+	uint8_t ACPIProcessor_id;
+	uint8_t APIC_id;
+	uint32_t Flags;	
+};
+
+struct MADTEntryType1 {
+	uint8_t IOAPIC_id;
+	uint8_t Reserved;
+	uint32_t IOAPICAddr;
+	uint32_t GSIB; // Global System Interrupt Base
+}__attribute__((packed));
+
 void* get_sdt_by_signature(char* signature);
 
+void* parse_MADT(uint8_t entry_id);
 void init_multiboot(uint32_t addr);
 
 #endif

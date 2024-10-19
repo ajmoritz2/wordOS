@@ -21,6 +21,8 @@
 
 #define PGROUNDUP(s) 	(((s)+PGSIZE-1) & ~(PGSIZE-1))
 #define PGROUNDDOWN(a) 	(((a)) & ~(PGSIZE-1))
+#define BYTE_PGROUNDDOWN(a) (((uint32_t)((a) & ~(4096-1))))
+#define BYTE_PGROUNDUP(a) (((uint32_t)((a + (4096-1)) & ~(4096-1))))
 
 typedef struct {
 	uint32_t present : 1;
@@ -41,7 +43,7 @@ typedef struct {
 
 uint8_t handle_exception(struct isr_frame *frame);
 
-uint32_t* pg_init(uintptr_t *entry_pd);
+uint32_t* pg_init(uintptr_t *entry_pd, uint32_t tag_size);
 
 void memory_map(uint32_t* root_pd, uint32_t* phys, uint32_t* virt, size_t flags);
 void memory_unmap(uint32_t*, uint32_t*);

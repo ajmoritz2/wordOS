@@ -91,21 +91,21 @@ void newinit_pd(uint32_t* pd)
 	pd[1023] = (uint32_t) (pd - 0xC0000000) | 3;
 }
 
-void init_kpt(uint32_t* pt)
+void init_kpt(uint32_t* pt, uint32_t tag_size)
 {
 	// Just gonna keep it static here because its less of a headache for now.
 	// We will see what I think of it later on...
 	// Its really just a stupid hack
 	uint32_t j = 0;
 	uint32_t flag = 0x3;
-	uint32_t init_pages = ((KEND - 0x100000) + (PGROUNDUP(NUM_FRAMES*4))) / 4096; // Some math, not very efficient,
+	uint32_t init_pages = ((KEND - 0x100000) + (PGROUNDUP(NUM_FRAMES*4)) + tag_size) / 4096; // Some math, not very efficient,
 	logf("PAGES: %d\n", init_pages);							      // but makes my life easy...
 	for (uint32_t i = 256; i < 1024; i++)
 	{
 		if (i > 257+init_pages) flag = 0x2;
 		//logf("Kernel page is: %d at %d\n", pt[i] & 3, i);
 		if (!(pt[i] &  3)) {
-			pt[i] = (j * 0x1000) + 0x500000 | flag; // Mark kernel pages as present because I'm lazy af
+			pt[i] = (j * 0x1000) + 0x100000 | flag; // Mark kernel pages as present because I'm lazy af
 		}
 		j++;
 	}
@@ -137,6 +137,9 @@ uint8_t handle_exception(struct isr_frame *frame)
 	if (code & 0x40) { log_to_serial("Shadow Stack\n"); }
 	if (!(code & ~2)) {
 		// TODO: Think of something else to do here...
+		if (frame->cr2 == 0) {
+			logf("Null pointer access?\n");
+		}
 		memory_map(kernel_pd, alloc_phys_page(), (uint32_t*)frame->cr2, 0x3);
 		return 0;
 	}
@@ -144,13 +147,13 @@ uint8_t handle_exception(struct isr_frame *frame)
 	return 1;
 }
 
-uint32_t* pg_init(uintptr_t *entry_pd)
+uint32_t* pg_init(uintptr_t *entry_pd, uint32_t tag_size)
 {
 	// Copy over tables into C code for easier access
 	newinit_pd(kernel_pd);
 	memset(kernel_pd, 0, 4096);
 	memcpy(kernel_pt, (uint32_t*)((entry_pd[768] & 0xFFFFF000) + 0xC0000000), 4096);
-	init_kpt(kernel_pt); // PRAY TO GOD
+	init_kpt(kernel_pt, tag_size); // PRAY TO GOD
 	kernel_pd[768] = (uint32_t)PHYSADDR((uint32_t) kernel_pt) | 3;
 	kernel_pd[1023] = (uint32_t)PHYSADDR((uint32_t) kernel_pd) | 3;	
 	// ENDING TABLE COPIES

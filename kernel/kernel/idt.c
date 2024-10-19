@@ -28,7 +28,7 @@ void init_idt()
 {
 	idtr.base = (uint32_t)&idt;
 	idtr.limit = sizeof(idt_entry) * 256 - 1;
-	memset(&idt, 0, sizeof(idt_entry)*64);
+	memset(&idt, 0, sizeof(idt_entry)*256 - 1);
 	idt_set_gate(0x0, (uint32_t)isr_stub_0, 0x80 | 0x0E);
 	idt_set_gate(0x1, (uint32_t)isr_stub_1, 0x80 | 0x0E);
 	idt_set_gate(0x2, (uint32_t)isr_stub_2, 0x80 | 0x0E);
@@ -100,8 +100,7 @@ void irq_handler(int num) {
 
 	if (num == 0x30) {
 		set_initial_timer_count(glob_apic_addr, 0xFFFFFFFF);
-		logf("Timer reset!\n");
-	}
+}
 
 	send_EOI(glob_apic_addr); // THEY WILL QUEUE UP IF THIS ISN'T HERE!
 }

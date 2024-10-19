@@ -47,11 +47,31 @@ void fill_framebuffer() {
 
 	for (int x = 0; x < 1279; x++) {
 		for (int y = 0; y < 800; y++) {
-			uint32_t* pix = pixel_addr((uint32_t*)0xD0000000, x, y, fb->common.framebuffer_pitch, bypp);
-			*pix = 0x00FFFF;
+//			uint32_t* pix = pixel_addr((uint32_t*)0xD0000000, x, y, fb->common.framebuffer_pitch, bypp);
+//			*pix = 0x00FFFF;
 		}
 	}
 
+}
+// MADT Parsing
+void* parse_MADT(uint8_t entry_id)
+{
+	struct ACPISDTHeader* madt = (struct ACPISDTHeader*) get_sdt_by_signature("APIC");
+	
+	uint16_t offset = sizeof(struct ACPISDTHeader) + 8; // The +8 is for the 8 bytes of other data here
+	uint8_t* mem_p = (uint8_t*) ((uint32_t) madt + offset);
+	while (offset <= madt->Length) {
+		struct MADTEntryHead* entry_head = (struct MADTEntryHead*) mem_p;
+		if (entry_head->EntryType == entry_id) {
+			logf("Length %x\n", (mem_p+2));
+			return (void*)(mem_p + 2);
+		}
+		offset+=entry_head->Length;
+		mem_p+=entry_head->Length;
+	}
+	
+	logf("MADT entry with id %d NOT FOUND!\n", entry_id);
+	return NULL;	
 }
 
 // ACPI TABLES BALONEY
@@ -76,7 +96,7 @@ void* get_sdt_by_signature(char* signature)
 
 	for (int i = 0; i < entries; i++) {
 		struct ACPISDTHeader* potential = (struct ACPISDTHeader *) rsdt->NextSDT[i];
-		if (!strcmp(signature, potential->Signature, 4))
+		if (strcmp(signature, potential->Signature, 4))
 			return (void*) potential;
 	}
 	logf("Signature not found in ACPI tables");
@@ -90,15 +110,13 @@ void init_rsdt_v1()
 		return;
 	// Super weird hack to get the struct for the RSDP
 	struct RSDPDescriptor* rsdp_d = (struct RSDPDescriptor*) old_acpi->rsdp;
-
 	if (validate_RSDP((char *) rsdp_d, sizeof(rsdp_d))) {
 		logf("RSDP NOT VALIDATED >><< \n");
 		return;
 	}
-
 	rsdt_addr = (struct ACPISDTHeader *) rsdp_d->RsdtAddress;
 	memory_map(current_vmm->root_pd, (uint32_t*)((uint32_t)rsdt_addr & ~0xFFF), (uint32_t*)((uint32_t) rsdt_addr & ~0xFFF), 0x1);	
-//	logf("APIC Table found at %x \n", get_sdt_by_signature(head, "APIC"));
+	logf("APIC Table found at %x \n", get_sdt_by_signature("APIC"));
 }
 
 
@@ -124,11 +142,11 @@ void init_multiboot(uint32_t addr)
 				break;
 		}
 	}
+
+
 	if (old_acpi)	
 		init_rsdt_v1();	
 	
 
 	return;
 }
-
-

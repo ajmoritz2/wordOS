@@ -19,6 +19,7 @@ int memcmp(const void* p1, const void* p2, size_t n)
 
 void* memcpy (void *dest, const void *src, size_t len)
 {
+	// Len is in BYTES HERE
 	char *d = dest;
 	const char *s = src;
 	while (len--)
@@ -32,9 +33,10 @@ void* memmove(void* s1, const void* s2, size_t n)
 }
 
 void* memset(void * dest, int c, size_t n)
-{
+{ 
+	// Size is NOT in bytes. It is in 4 bytes
 	uint32_t i;
-	uint32_t *p = dest;
+	uint8_t *p = dest;
 	i = 0;
 	while (n > 0) {
 		*p = c;

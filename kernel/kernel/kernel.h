@@ -14,6 +14,8 @@ extern uint32_t _kernel_end;
 #define KBASE &_kernel_end
 #define PHYSTOP ((uint32_t)(KBASE + 128*1024*1024))
 
+void panic(char* reason);
+
 void outportb(int portnum, unsigned char data);
 void log_to_serial (char* number);
 void log_integer_to_serial (uint64_t number);

@@ -17,6 +17,7 @@ uint32_t last_frame = 0;
 void *pre_malloc(uint32_t size, uint32_t* physical)
 {	
 	uint32_t mem_loc = PGROUNDUP(pre_mem);
+	
 	pre_mem += PGROUNDUP(size);
 	if (physical) *physical = mem_loc - 0xC0000000;
 	return (void*) mem_loc;	
@@ -79,9 +80,12 @@ uint32_t *alloc_phys_page()
 	return (uint32_t*) frame_to_physical(first_frame);
 }
 
-void kinit() 
+uint32_t kinit(uint32_t* after_mb) 
 {
 	// Start the page frames
+	if ((uint32_t)after_mb >= KEND) {
+		pre_mem += *after_mb;
+	}
 	num_frames = NUM_FRAMES; // 10 MiB of pages
 	frames = pre_malloc(num_frames, 0);
 	memset(frames, 0, num_frames);
@@ -92,8 +96,7 @@ void kinit()
 	{
 		set_frame(i);
 	}
-
-
 	
+	return pre_mem;	
 }
 // END PFA

@@ -34,7 +34,9 @@
 extern vmm* current_vmm;
 
 uint32_t* glob_apic_addr = 0; // TODO: Create a core struct to keep track of core specific stuff
+uint32_t volatile* glob_ioapic_addr = 0;
 
+// Assembly Instructions START
 uint32_t* get_apic_addr()
 {
 	// TODO: change this to a get_msr function instead...
@@ -71,7 +73,17 @@ void get_cpuid(int eax_val)
 	logf("CPU_ID: %d EAX EBX ECX EDX\n%x\n%x\n%x\n%x\nEND...\n", eax_val, eax, ebx, ecx, edx);	
 }
 
-void timer_test(void* lapic_addr)
+// TIMER Instructions START
+
+void set_pit_count(uint16_t count)
+{
+	// PIT runs at 1,193,180 Hz
+	outportb(0x43, 0x34); // 0x43 is the PIT command port. 0x34 is a bitfield.
+	outportb(0x40, count & 0xFF);
+   	outportb(0x40, count >> 8);	
+}
+
+void timer_init(void* lapic_addr)
 {
 	volatile uint32_t* lvt_reg = (uint32_t*) ((uint32_t) lapic_addr + 0x320);
 
@@ -80,7 +92,7 @@ void timer_test(void* lapic_addr)
 	set_initial_timer_count(lapic_addr, 0xFFFFFFFF);
 
 	uint32_t volatile *timer_count = (uint32_t*) ((uint32_t) lapic_addr + 0x390);
-	logf("Timer count: %d\n", *timer_count);
+	logf("APIC Timer initialized\n");
 }
 
 void set_initial_timer_count(void* lapic_addr, uint32_t count)
@@ -90,13 +102,39 @@ void set_initial_timer_count(void* lapic_addr, uint32_t count)
 
 }
 
-void lvt_edit(void* apic_addr, uint32_t offset, struct LVTEntry* entry)
+// IOAPIC Baloney
+uint32_t read_ioapic_register(uint32_t reg)
 {
-	struct LVTEntry* edit_addr = (struct LVTEntry*)((uint32_t)apic_addr + offset);
+	*glob_ioapic_addr = reg;
+	uint32_t* access_point = (uint32_t*) ((uint32_t) glob_ioapic_addr + 0x10);
 
-	*edit_addr = *entry;
+	return *access_point;
 }
 
+void write_ioapic_register(uint32_t reg, uint32_t data)
+{	
+	*glob_ioapic_addr = reg;
+
+	uint32_t* access_point = (uint32_t*) ((uint32_t) glob_ioapic_addr + 0x10);
+	*access_point = data;
+}
+
+void init_ioapic()
+{
+	logf("Running...\n");
+	struct MADTEntryType1* ioapicStruct = (struct MADTEntryType1*)parse_MADT(1);
+
+	void* io_mapping = page_kalloc(1024, 0x3, ioapicStruct->IOAPICAddr);
+
+	glob_ioapic_addr = (uint32_t*) (io_mapping);
+
+	// Read Registers at addr + 0x10. Insert reg to read at addr + 0
+	logf("IOAPIC found at addr %x\n", glob_ioapic_addr);
+
+	read_ioapic_register(1);	
+}
+
+// LAPIC Stuff
 void send_EOI(void* apic_addr) 
 {
 	uint32_t* eoi_reg = (uint32_t*) ((uint32_t) apic_addr + EOI);
@@ -106,21 +144,23 @@ void send_EOI(void* apic_addr)
 
 void init_apic()
 {
-	uint32_t* apic_addr = (uint32_t*)0xC1000000;
-	glob_apic_addr = apic_addr;
+	uint32_t* apic_addr = (uint32_t*)0xC1000000; // TODO: assign dynamically once paging is fixed
+	glob_apic_addr = apic_addr; // TODO: Create a global core struct (stated earlier as well)
 	uint32_t* apic_addr_phys = get_apic_addr();
 	uint32_t volatile* spur_vec = (uint32_t*) ((uint32_t)apic_addr + SPUR_VEC);
 	logf("Spur vec at %x\n", spur_vec);
-	memory_map(current_vmm->root_pd, apic_addr_phys, (uint32_t*)apic_addr, 0x113); 
+	memory_map(current_vmm->root_pd, apic_addr_phys, (uint32_t*)apic_addr, 0x113); // Flags are R/W Cache disable, Global and pres! 
 	*spur_vec = *spur_vec | 0x1FF; // Map vec to 0xF0 entry and enable
 	
-	uint32_t volatile * id_addr = (uint32_t*) ((uint32_t)apic_addr + 0x30);
-	logf("LOCAL APIC ID: %x at %x\n", *id_addr, id_addr);
-	get_cpuid(1);
-	get_cpuid(6);
-	timer_test(apic_addr);
+	timer_init(apic_addr);
+	set_pit_count(1193);
+
+	init_ioapic();
 }
 
+
+
+// PIC Legacy stuff
 void disable_pic()
 {
 

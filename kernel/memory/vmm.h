@@ -10,7 +10,7 @@
 #define VM_OBJ_FLAG_PRESENT (1 << 3)
 
 typedef struct vm_obj {
-	uintptr_t base;
+	uintptr_t base; // First bit is a present flag
 	size_t length;
 	size_t flags;
 	struct vm_obj* next;
@@ -26,12 +26,11 @@ typedef struct {
 
 uint32_t convert_x86_32_vm_flags(size_t);
 
-vmm* create_vmm(uint32_t*);
+vmm* create_vmm(uint32_t*, uint32_t low, uint32_t high);
 
 void set_current_vmm(vmm*);
 
-void* vmm_alloc(size_t length, size_t flags, void* args); // Allocate a vm obj and push it to the current vmm.
-
-void free(uintptr_t addr);
+void* page_kalloc(size_t length, size_t flags, uint32_t phys); // Allocate a vm obj and push it to the current vmm.
+void free(void* addr);
 
 #endif

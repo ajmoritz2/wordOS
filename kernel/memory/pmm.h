@@ -1,10 +1,11 @@
 #ifndef PFADEFINE
 #define PFADEFINE
 #include <stddef.h>
+#include <stdint.h>
 
 #define NUM_FRAMES (10 * 1024 * 1024) / 4096
 
-void kinit();
+uint32_t kinit(uint32_t*);
 
 void* pre_malloc(uint32_t size, uint32_t*);
 void clear_frame(uint32_t);
