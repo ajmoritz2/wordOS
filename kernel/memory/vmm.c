@@ -54,7 +54,7 @@ void* alloc_vm_obj()
 	// When userland is created, must add dynamic allocation for the vmms.
 	// Should be fine with Kernel VMM being hardcoded into memory though for jumpstarting.
 	// Can expand this later, but each vmm can hold 2048 allocs	so probably wont need to.
-	
+
 	void* start_page = (void*) current_vmm;
 	uint32_t end_page = (uint32_t) (start_page + 4096);
 	start_page += sizeof(vmm); // Puts us at the first vm_obj
@@ -63,6 +63,7 @@ void* alloc_vm_obj()
 
 	if (potential < end_page) { // Alloc as far as you can before you start searching.
 		current_vmm->vm_obj_store_addr += sizeof(vm_obj);
+		logf("Allocated vm space at %x\n", potential);
 		return (void*)potential;
 	}
 	uint32_t found = 0;
@@ -153,10 +154,11 @@ map_pages:
 		}
 	} else {
 		for (int i = 0; i < length; i += 4096) { // Caller responsibility to keep track of phys frames here
-			memory_map(current_vmm->root_pd, (uint32_t*) (phys + i), (uint32_t*) (found + i), flags);
+			memory_map(current_vmm->root_pd, (uint32_t*) ((phys & ~0xFFF) + i), (uint32_t*) (found + i), flags);
 		}
 	}
-	return (void*) found;
+	logf("Mapped phys is %x\n", phys);
+	return (void*) (found + (phys & 0xFFF));
 }
 
 void free(void* addr) {

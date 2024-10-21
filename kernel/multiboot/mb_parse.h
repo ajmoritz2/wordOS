@@ -42,9 +42,16 @@ struct MADTEntryType1 {
 	uint32_t GSIB; // Global System Interrupt Base
 }__attribute__((packed));
 
+struct MADTEntryType2 {
+	uint8_t BusSource;
+	uint8_t IRQSource;
+	uint32_t GSI;
+	uint16_t Flags;
+} __attribute__ ((packed));
+
 void* get_sdt_by_signature(char* signature);
 
-void* parse_MADT(uint8_t entry_id);
+void* parse_MADT(uint8_t entry_id, uint8_t count);
 void init_multiboot(uint32_t addr);
 
 #endif

@@ -9,6 +9,7 @@
 #include "../memory/paging.h"
 #include "../memory/vmm.h"
 #include "../drivers/apic.h"
+#include "../drivers/timer.h"
 #include "../multiboot/mb_parse.h"
 
 
@@ -17,7 +18,7 @@ static volatile uint32_t tester[1024];
 extern inline unsigned char inportb (int portnum)
 {
 	unsigned char data=0;
-	__asm__ __volatile__ ("inb %%dx, %%al" : "=a" (data) : "d" (portnum));
+	__asm__ volatile ("inb %w1, %b0" : "=a" (data) : "Nd" (portnum) : "memory");
 	return data;
 }
 
@@ -127,6 +128,10 @@ void logf(char *string, ...)
 				case 's':
 					log_to_serial(va_arg(params, char *));
 					break;
+				case 'c':
+					char character = (char) va_arg(params, uint32_t);
+					outportb(PORT, character);
+					break;
 				default:
 					log_to_serial("UNKNOWN OPTION %");
 					outportb(PORT, *string);
@@ -169,12 +174,13 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	uint32_t kalloc_bottom = kinit(tag_size); // Bandaid fix done here. Will bite me in the ass later...
 	vmm* kvmm = create_vmm(kpd, 0xCC000000, 0xFFE00000);
 	set_current_vmm(kvmm);
-
 	init_multiboot(multiboot_loc + 0xC0000000); // Must call before init_apic to properly parse. Must also be done after paging
 	
 	// Do everything you want with the multiboot tags before this point. Past here it will be overwritten.	
 	
 	init_apic(kvmm);
+	int i = 0;
+	while (1) {}
 	log_to_serial("\nPROGRAM TO HALT! \n");
 
 }

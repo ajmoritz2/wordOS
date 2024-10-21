@@ -70,6 +70,8 @@ extern void isr_stub_30(void);
 extern void isr_stub_31(void);
 
 extern void irq_stub_48(void);
+extern void irq_stub_49(void);
+extern void irq_stub_50(void);
 
 void exception_handler(struct isr_frame frame);
 

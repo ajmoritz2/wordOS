@@ -24,6 +24,8 @@ OBJS=\
      $(MEMDIR)/vmm.o \
      $(MBDIR)/mb_parse.o \
      $(DRIVERDIR)/apic.o \
+	 $(DRIVERDIR)/timer.o \
+	 $(DRIVERDIR)/keyboard.o \
      $(KERNELDIR)/kernel.o
 
 .PHONY: all

@@ -5,14 +5,14 @@
 #include "../memory/paging.h"
 #include "../memory/string.h"
 #include "../drivers/apic.h"
+#include "../drivers/keyboard.h"
 
-extern uint32_t* glob_apic_addr;
+extern uint32_t* glob_lapic_addr;
 
 __attribute__((aligned(0x0010)))
 static idt_entry idt[256];
 
 static idtr_t idtr;
-
 
 void idt_set_gate(uint8_t num, uint32_t base, uint8_t flags)
 {
@@ -62,8 +62,9 @@ void init_idt()
 	idt_set_gate(0x1E, (uint32_t)isr_stub_30, 0x80 | 0x0E);
 	idt_set_gate(0x1F, (uint32_t)isr_stub_31, 0x80 | 0x0E);
 
-	idt_set_gate(0x30, (uint32_t)irq_stub_48, 0x80 | 0x0E);
-
+	idt_set_gate(0x30, (uint32_t)irq_stub_48, 0x80 | 0x0E); // LAPIC ID 0
+	idt_set_gate(0x31, (uint32_t)irq_stub_49, 0x80 | 0x0E); // PIT
+	idt_set_gate(0x32, (uint32_t)irq_stub_50, 0x80 | 0x0E); // Keyboard
 
 	log_to_serial("Loaded IDT\n");
 	asm volatile ("lidt %0" : : "m"(idtr)); // Loading new IDT
@@ -96,17 +97,29 @@ uint8_t exc_print(struct isr_frame *frame)
 	return code;
 }
 
-void irq_handler(int num) {
-
-	if (num == 0x30) {
-		set_initial_timer_count(glob_apic_addr, 0xFFFFFFFF);
+void handle_keyboard()
+{
+	uint8_t scan_code = inportb(0x60);
+	recieve_scancode(scan_code);
 }
 
-	send_EOI(glob_apic_addr); // THEY WILL QUEUE UP IF THIS ISN'T HERE!
+void irq_handler(int num) {
+	switch (num) {
+	case 0x30: // LAPIC Timer
+		break;
+	case 0x31: // PIT timer
+		end_calibration();
+		break;
+	case 0x32:
+		handle_keyboard();
+		break;
+	}
+	send_EOI(glob_lapic_addr); // THEY WILL QUEUE UP IF THIS ISN'T HERE!
 }
 
 void isr_handler(struct isr_frame frame)
 {
+	logf("ISR Interrupt at isr %d\n", frame.isr_no);
 	if (frame.isr_no < 32) {
 		if (exc_print(&frame) == 0) {
 			return;
