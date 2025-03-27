@@ -26,6 +26,7 @@ OBJS=\
      $(DRIVERDIR)/apic.o \
 	 $(DRIVERDIR)/timer.o \
 	 $(DRIVERDIR)/keyboard.o \
+	 $(DRIVERDIR)/framebuffer.o \
      $(KERNELDIR)/kernel.o
 
 .PHONY: all
@@ -33,7 +34,7 @@ OBJS=\
 all: word.bin
 
 word.bin: $(OBJS) $(ARCHDIR)/linkerNP.ld
-	$(CC) -T $(ARCHDIR)/linkerNP.ld -o $@ $(CFLAGS) -nostdlib $(OBJS) -lgcc
+	$(CC) -T $(ARCHDIR)/linkerNP.ld -o $@ $(CFLAGS) -nostdlib $(OBJS) fonts/font.o -lgcc
 	grub-file --is-x86-multiboot2 word.bin
 
 %.s: %.o

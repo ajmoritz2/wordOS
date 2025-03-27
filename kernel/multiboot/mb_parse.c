@@ -9,50 +9,45 @@
 #include "multiboot2.h"
 #include "mb_parse.h"
 #include "../memory/vmm.h"
+#include "../memory/pmm.h"
 #include "../memory/paging.h"
 #include "../memory/string.h"
 #include "../kernel/kernel.h"
+#include "../drivers/framebuffer.h"
 #include <stdint.h>
 
 extern vmm* current_vmm;
+extern uint32_t* fb_virt_addr;
 struct ACPISDTHeader* rsdt_addr;
 
 struct multiboot_tag_framebuffer* fb;
+static uint32_t bypp;
 struct multiboot_tag_old_acpi* old_acpi;
 
 // FRAMEBUFFER BALONEY TODO: Move to own file...
-uint32_t* pixel_addr (uint32_t* fb_addr, uint32_t x, uint32_t y, uint32_t pitch, uint32_t bypp)
+uint32_t* get_pixel_addr (uint32_t x, uint32_t y)
 {
-	uint32_t row = y * (pitch);
-	uint32_t column = x * (bypp);
 
-	uint32_t final_addr = (uint32_t) fb_addr + row + column;
+	uint32_t row = y * (fb->common.framebuffer_pitch);
+	uint32_t column = x * (bypp);
+	uint32_t final_addr = (uint32_t) fb_virt_addr + row + column;
 
 	return (uint32_t*) final_addr;
 }
 
-void fill_framebuffer() {
-	uint32_t* fb_addr = (uint32_t*)(fb->common.framebuffer_addr);
-	uint32_t num_pages = (fb->common.framebuffer_pitch * fb->common.framebuffer_height) / 4096;
+void init_framebuffer() {
+	// Low priority: Make more flexible to all values rather than assuming...
+	uint64_t* fb_addr = (uint64_t*)(fb->common.framebuffer_addr);
+	uint32_t num_pages = (fb->common.framebuffer_pitch * fb->common.framebuffer_height);
 
 	logf("Type of FrameBuffer: %d\n", fb->common.framebuffer_type);
 
 	// Mapping framebuffer
-	for (int i = 0; i < num_pages; i++) {
+	fb_virt_addr = (uint32_t*) page_kalloc(num_pages, 0x3, (uint32_t) fb_addr);
 
-		memory_map(current_vmm->root_pd, fb_addr + (i*0x1000/4), (uint32_t*)(0xD0000000 + (i * 0x1000)), 0x3);
-	}
-
-	uint32_t bypp = fb->common.framebuffer_bpp/8;
-
-	for (int x = 0; x < 1279; x++) {
-		for (int y = 0; y < 800; y++) {
-//			uint32_t* pix = pixel_addr((uint32_t*)0xD0000000, x, y, fb->common.framebuffer_pitch, bypp);
-//			*pix = 0x00FFFF;
-		}
-	}
-
+	bypp = fb->common.framebuffer_bpp/8;
 }
+
 // MADT Parsing
 void* parse_MADT(uint8_t entry_id, uint8_t count)
 {
@@ -122,8 +117,9 @@ void init_rsdt_v1()
 
 
 // INIT MACARONI
-void init_multiboot(uint32_t addr)
+struct multiboot_tag_pointers init_multiboot(uint32_t addr)
 {
+	struct multiboot_tag_pointers all_tags = {0};
 	struct multiboot_tag *tag;
 	unsigned size;
 	size = *(unsigned *) addr;
@@ -133,21 +129,28 @@ void init_multiboot(uint32_t addr)
 	{
 		switch (tag->type)
 		{
-			case 8:
-				fb = (struct multiboot_tag_framebuffer*) tag;
+			case MULTIBOOT_TAG_TYPE_MMAP:
+				logf("Multiboot MMAP tag found...\n");
+				all_tags.mmap = (struct multiboot_tag_mmap *) tag;
+				break;
+			case MULTIBOOT_TAG_TYPE_FRAMEBUFFER	:
+				all_tags.framebuffer = (struct multiboot_tag_framebuffer*) tag;
 				break;
 			case 14:
-				old_acpi = (struct multiboot_tag_old_acpi*) tag;
+				all_tags.old_acpi = (struct multiboot_tag_old_acpi*) tag;
 				break;
 			case 15:
 				break;
 		}
 	}
 
+	fb = all_tags.framebuffer;
+	old_acpi = all_tags.old_acpi;
 
 	if (old_acpi)
 		init_rsdt_v1();	
-	
+	init_framebuffer();
+	set_memory_map(all_tags.mmap);
 
-	return;
+	return all_tags;
 }

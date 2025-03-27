@@ -1,11 +1,14 @@
 #include "../kernel/kernel.h"
 #include "keyboard.h"
+#include "framebuffer.h"
 #include <stdint.h>
 
 #define MAX_KEY_BUFFER_SIZE	255
 
 #define NORMAL_STATE	0
 #define PREFIX_STATE	1
+
+// TODO: make this more robust, as in actually fix it
 
 kernel_scancode key_lookup[] = {
 	0, KEY_ESC, KEY_1, KEY_2, KEY_3, KEY_4, 			// 5
@@ -63,8 +66,8 @@ void recieve_scancode(uint8_t code)
 		if (handle_masks(key_lookup[code]))
 			return;
 
-		key_buffer[buffer_pos].code = key_lookup[code];
 		buffer_pos = (buffer_pos + 1) % MAX_KEY_BUFFER_SIZE;
+		key_buffer[buffer_pos].code = key_lookup[code];
 	}
 
 	if (current_state == PREFIX_STATE) {
@@ -176,6 +179,10 @@ char get_printable_char(key_event key)
 		return ' ';
 	case KEY_TAB:
 		return '\t';
+	case KEY_BACKSPACE:
+		return 0x8;
+	case KEY_RETURN:
+		return '\n';
 	default:
 		return 0;
 	}

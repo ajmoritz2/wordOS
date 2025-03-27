@@ -28,18 +28,34 @@ uint32_t convert_x86_32_vm_flags(size_t flags)
 vmm* create_vmm(uint32_t* root_pd, uint32_t low, uint32_t high)
 {
 
-	memory_map(root_pd, alloc_phys_page(), (uint32_t*)0xFF7E8000, 0x3); 
+	memory_map(root_pd, alloc_phys_page(), (uint32_t*)TEMP_PAGE_VIRT, 0x3); 
 	
-	memset((void*)0xFF7E8000, 0, 4096);
-	vmm *new_vmm = (vmm*)0xFF7E8000;
+	memset((void*)TEMP_PAGE_VIRT, 0, 4096);
+	vmm *new_vmm = (vmm*)TEMP_PAGE_VIRT;
 	new_vmm->root_pd = (uint32_t*)root_pd;
 	new_vmm->head_vm_obj = NULL;
-	new_vmm->vm_obj_store_addr = 0xFF7E8000 + sizeof(vmm);
+	new_vmm->vm_obj_store_addr = TEMP_PAGE_VIRT + sizeof(vmm);
 	logf("Low addr marked at %x. High marked at %x\n\n", BYTE_PGROUNDUP(low), high);
 	new_vmm->low = BYTE_PGROUNDUP(low);
 	new_vmm->high = high;
 
 	return new_vmm;
+}
+
+void vmm_transfer_dynamic(uint32_t* root_pd)
+{
+	virtual_t *new_vmm_sto = page_kalloc(4096, 0x3, 0);
+
+	memcpy(new_vmm_sto, current_vmm, 4096);
+	logf("Old VMM storage: %x, New VMM storage: %x\n", current_vmm, new_vmm_sto);
+
+
+	virtual_t *old_vmm = (virtual_t *)current_vmm;
+	current_vmm = (vmm *)new_vmm_sto;
+
+	current_vmm->vm_obj_store_addr = $4r current_vmm + (current_vmm->vm_obj_store_addr & 0x3FF);
+
+	memory_unmap(root_pd, old_vmm);
 }
 
 void set_current_vmm(vmm* new_vmm)
@@ -94,7 +110,7 @@ void* page_kalloc(size_t length, size_t flags, uint32_t phys)
 	uint32_t found = 0;
 
 	if (length > (current_vmm->high - current_vmm->low)){
-		logf("No thanks!\n");
+		logf("No thanks! VMM_HIGH: %x, VMM_LOW: %x\n", current_vmm->high, current_vmm->low);
 		return 0;
 	}
 	if (current == NULL) {

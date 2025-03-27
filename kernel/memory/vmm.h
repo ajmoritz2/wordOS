@@ -29,6 +29,7 @@ uint32_t convert_x86_32_vm_flags(size_t);
 vmm* create_vmm(uint32_t*, uint32_t low, uint32_t high);
 
 void set_current_vmm(vmm*);
+void vmm_transfer_dynamic(uint32_t* root_pd);
 
 void* page_kalloc(size_t length, size_t flags, uint32_t phys); // Allocate a vm obj and push it to the current vmm.
 void free(void* addr);

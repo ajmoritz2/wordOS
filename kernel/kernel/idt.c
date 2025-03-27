@@ -5,6 +5,7 @@
 #include "../memory/paging.h"
 #include "../memory/string.h"
 #include "../drivers/apic.h"
+#include "../drivers/framebuffer.h"
 #include "../drivers/keyboard.h"
 
 extern uint32_t* glob_lapic_addr;
@@ -113,13 +114,14 @@ void irq_handler(int num) {
 	case 0x32:
 		handle_keyboard();
 		break;
+	case 0x80: // System calls for when that is added...
+		break;
 	}
 	send_EOI(glob_lapic_addr); // THEY WILL QUEUE UP IF THIS ISN'T HERE!
 }
 
 void isr_handler(struct isr_frame frame)
 {
-	logf("ISR Interrupt at isr %d\n", frame.isr_no);
 	if (frame.isr_no < 32) {
 		if (exc_print(&frame) == 0) {
 			return;

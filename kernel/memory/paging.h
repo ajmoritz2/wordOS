@@ -24,6 +24,12 @@
 #define BYTE_PGROUNDDOWN(a) (((uint32_t)((a) & ~(4096-1))))
 #define BYTE_PGROUNDUP(a) (((uint32_t)((a + (4096-1)) & ~(4096-1))))
 
+#define TEMP_PAGE_VIRT 0xFF000000
+#define TEMP_PAGE_PHYS 0x400000
+
+typedef uintptr_t physical_t;
+typedef uintptr_t virtual_t;
+
 typedef struct {
 	uint32_t present : 1;
 	uint32_t rw : 1;
@@ -34,7 +40,7 @@ typedef struct {
 	uint32_t PAT : 1; // Should be 0
 	uint32_t global : 1;
 	uint32_t avl : 3;
-	uint32_t addr : 20;
+	physical_t addr : 20;
 
 } page_t;
 

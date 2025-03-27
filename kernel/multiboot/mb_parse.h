@@ -49,9 +49,18 @@ struct MADTEntryType2 {
 	uint16_t Flags;
 } __attribute__ ((packed));
 
+struct multiboot_tag_pointers {
+	struct multiboot_tag_mmap *mmap;
+	struct multiboot_tag_framebuffer *framebuffer;
+	struct multiboot_tag_old_acpi *old_acpi;
+};	
+
+void get_mmap(struct multiboot_tag_pointers* tags);
 void* get_sdt_by_signature(char* signature);
 
+uint32_t* get_pixel_addr(uint32_t x, uint32_t y);
+
 void* parse_MADT(uint8_t entry_id, uint8_t count);
-void init_multiboot(uint32_t addr);
+struct multiboot_tag_pointers init_multiboot(uint32_t addr);
 
 #endif

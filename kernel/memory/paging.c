@@ -98,7 +98,7 @@ void init_kpt(uint32_t* pt, uint32_t tag_size)
 	// Its really just a stupid hack
 	uint32_t j = 0;
 	uint32_t flag = 0x3;
-	uint32_t init_pages = ((KEND - 0x100000) + (PGROUNDUP(NUM_FRAMES*4)) + tag_size) / 4096; // Some math, not very efficient,
+	uint32_t init_pages = ((KEND - 0x100000) + (PGROUNDUP(NUM_FRAMES)) + tag_size) / 4096; // Some math, not very efficient,
 	logf("PAGES: %d\n", init_pages);							      // but makes my life easy...
 	for (uint32_t i = 256; i < 1024; i++)
 	{
@@ -129,7 +129,7 @@ uint8_t handle_exception(struct isr_frame *frame)
 	//log_to_serial("WELCOME TO PAGINGFAULT\n");
 	uint32_t code = frame->isr_err;
 	if (code & 1) { log_to_serial("404: Page not found\n"); }
-	if (code & 2) { }//log_to_serial("Write access\n"); }
+	if (code & 2) { logf("Write access at %x\n", (uint32_t) frame->cr2); }
 	if (code & 4) { log_to_serial("CPL = 3 error, could be privilege\n"); }
 	if (code & 8) { log_to_serial("Reserved Write\n"); }	
 	if (code & 0x10) { log_to_serial("Instruction Fetch\n"); }
@@ -140,7 +140,8 @@ uint8_t handle_exception(struct isr_frame *frame)
 		if (frame->cr2 == 0) {
 			logf("Null pointer access?\n");
 		}
-		memory_map(kernel_pd, alloc_phys_page(), (uint32_t*)frame->cr2, 0x3);
+		panic("MEMORY PAGE FAULT\n");
+		//memory_map(kernel_pd, alloc_phys_page(), (uint32_t*)frame->cr2, 0x3);
 		return 0;
 	}
 

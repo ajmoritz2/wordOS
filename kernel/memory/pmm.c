@@ -2,6 +2,8 @@
 #include "string.h"
 #include "paging.h"
 #include "pmm.h"
+#include "vmm.h"
+#include "../multiboot/multiboot2.h"
 #include <stddef.h>
 
 // START PFA
@@ -12,6 +14,20 @@ uint32_t pre_mem = KEND + 0xC0000000;
 uint32_t* frames;
 uint32_t num_frames;
 uint32_t last_frame = 0;
+
+void set_memory_map(struct multiboot_tag_mmap *mmap)
+{
+	int entries = (mmap->size - sizeof(struct multiboot_tag_mmap)) / mmap->entry_size;
+	
+	for (int i = 0; i < entries; i++) {
+		multiboot_memory_map_t entry = mmap->entries[i];
+
+		if (entry.type == MULTIBOOT_MEMORY_AVAILABLE) {
+			logf("Available memory from %x to %x\n", entry.addr, entry.addr + entry.len);	
+		}
+	}
+
+}	
 
 // ALLOCATE A PAGE except dumb
 void *pre_malloc(uint32_t size, uint32_t* physical)
@@ -80,12 +96,36 @@ uint32_t *alloc_phys_page()
 	return (uint32_t*) frame_to_physical(first_frame);
 }
 
+/*
+ * Call this function once the VMM is set up.
+ * This should transfer the legacy static code
+ * to the better dynamic memory.
+ *
+ */
+void transfer_dynamic()
+{
+	// This will be the frame storage pages.
+	virtual_t *new_addr = page_kalloc(num_frames, 0x3, 0);	
+	
+	logf("Old Frame storage at %x ", frames);
+
+	memcpy(new_addr, frames, num_frames); 
+
+	frames = new_addr;
+
+	logf("New frame storage at %x\n", $4 frames);
+}
+
 uint32_t kinit(uint32_t* after_mb) 
 {
 	// Start the page frames
-	if ((uint32_t)after_mb >= KEND) {
+	if ((uint32_t)after_mb >= &_kernel_end) {
 		pre_mem += *after_mb;
 	}
+
+
+	logf("KEND %x, after_mb %x, PREMEM: %x\n", &_kernel_end, (uint32_t) *after_mb, pre_mem);
+	logf("NUM FRAMES %x\n", NUM_FRAMES);
 	num_frames = NUM_FRAMES; // 10 MiB of pages
 	frames = pre_malloc(num_frames, 0);
 	memset(frames, 0, num_frames);

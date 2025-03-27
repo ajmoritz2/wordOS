@@ -10,10 +10,10 @@
 #include "../memory/vmm.h"
 #include "../drivers/apic.h"
 #include "../drivers/timer.h"
+#include "../drivers/framebuffer.h"
 #include "../multiboot/mb_parse.h"
 
-
-static volatile uint32_t tester[1024];
+extern char _binary_font_psf_start;
 
 extern inline unsigned char inportb (int portnum)
 {
@@ -159,14 +159,22 @@ void panic(char* reason) {
 
 void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc) 
 {
+
+	/* Memory locations which are hardcoded for kernel use
+	 * 0x7FE2000 -> 0x7FE2000 								:: I assume this is for the RSDT
+	 * 0xC0100000 - 0xC0114000 -> 0x00100000 - 0x00114000 	:: This is the kernel itself. 
+	 * 0xCC000000 - 0xFFE00000 -> ANY						:: This is the range of dynamic memory
+	 * 0xFF7E8000 -> DYNAMIC								:: Start of the vmm organizer
+ 	 * 0xFF7E8000 - 0xFFFFF000 -> page table entrys			:: This is for recursive paging I believe...
+ 	 */
+
 	if (multiboot_loc & 7)
 	{
 		log_to_serial("ERROR\n");
 		return;
 	}
-	
 	uint32_t* tag_size = (uint32_t*) (multiboot_loc + 0xC0000000);
-
+	uint32_t kernel_size = ((uint32_t) &_kernel_end - ((uint32_t)&_kernel_start + 0xC0000000));
 	disable_pic();
 	uint32_t* kpd = pg_init(entry_pd, *tag_size);
 	gdt_install();
@@ -174,13 +182,23 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	uint32_t kalloc_bottom = kinit(tag_size); // Bandaid fix done here. Will bite me in the ass later...
 	vmm* kvmm = create_vmm(kpd, 0xCC000000, 0xFFE00000);
 	set_current_vmm(kvmm);
-	init_multiboot(multiboot_loc + 0xC0000000); // Must call before init_apic to properly parse. Must also be done after paging
+
+	logf("PSF START: %x\n", *&_binary_font_psf_start);
+	struct multiboot_tag_pointers tags = init_multiboot(multiboot_loc + 0xC0000000); // Must call before init_apic to properly parse. Must also be done after paging
 	
+	transfer_dynamic();
+	vmm_transfer_dynamic(kpd);
 	// Do everything you want with the multiboot tags before this point. Past here it will be overwritten.	
-	
 	init_apic(kvmm);
-	int i = 0;
-	while (1) {}
+	init_font();
+	// Can use text now!
+	
+	logf("KERNEL STARTING LOC: %x KERNEL ENDING LOC: %x SIZE: %x\n", &_kernel_start, &_kernel_end, kernel_size); 
+	print("Welcome to WordOS. Home of the METS!\n");
+	print("Fuck the yankees... May the dodgers win!\n");
+	while (1) {
+
+	}
 	log_to_serial("\nPROGRAM TO HALT! \n");
 
 }

@@ -16,9 +16,9 @@ mb2_frame_buffer_req:
 	.short 0x05 # Tag identifier
 	.short 0x1 # Flag 
 	.long (mb2_framebuffer_end - mb2_frame_buffer_req) # Should be 20 if I read the docs correct
-	.long 0
-	.long 0
-	.long 0
+	.long 800
+	.long 600
+	.long 32
 mb2_framebuffer_end: # Puts in an address space
 .align 8
 # the end tag: type = 0, size = 8
@@ -33,16 +33,16 @@ mb2_hdr_end:
 # init all the stack
 .section .bootstrap_stack, "aw", @nobits
 boot_stack_base:
-	.skip  16384 # 16 KiB
+	.skip  16384 # 16 KiB More than enough for a nice stack
 stack_top:
 
 # create paging dir
 .section .bss, "aw", @nobits
 	.align 4096 # gotta align the dir for speed
 boot_page_directory:
-	.skip 4096 # Its 3 KiB long
+	.skip 4096 # Its 4 KiB long
 boot_page_table1:
-	.skip 4096  # I think this ends up being 5 pages allocated?
+	.skip 4096  # I think this ends up being 1 pages allocated?
 
 .section .multiboot.text, "a"
 .global _start
@@ -124,6 +124,7 @@ load_directory:
 	mov %ebp, %esp
 	pop %ebp
 	ret
+
 .global enable_paging
 .type enable_paging, @function
 enable_paging:

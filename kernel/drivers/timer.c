@@ -1,5 +1,6 @@
 #include "../kernel/kernel.h"
 #include "apic.h"
+#include "timer.h"
 #include <stdint.h>
 
 extern uint32_t ticks_per_ms;
@@ -12,8 +13,10 @@ void polled_sleep(uint32_t time)
 
 	uint32_t passes = 0;
 	uint32_t wanted_passes = 0;
-	
-	if (tick_time > first_count) {
+	arm_interrupt_timer(tick_time);
+
+	while (poll_timer()) {}
+	/*if (tick_time > first_count) {
 		wanted_passes = 1;
 		time_left = 0xFFFFFFFF - (tick_time - first_count);
 	} else {
@@ -36,7 +39,7 @@ void polled_sleep(uint32_t time)
 		}
 
 		last_time = current_time;
-	}
+	}*/
 }
 
 uint32_t poll_timer()

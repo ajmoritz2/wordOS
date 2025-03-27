@@ -6,6 +6,15 @@
 extern uint32_t _kernel_start;
 extern uint32_t _kernel_end;
 
+#define $1			(uint8_t *)
+#define $2			(uint16_t *)
+#define $4			(uint32_t *)
+#define $8			(uint64_t *)
+
+#define $1r			(uint8_t)
+#define $2r			(uint16_t)
+#define $4r			(uint32_t)
+#define $8r			(uint64_t)
 
 #define PORT 		0x3f8
 #define KSTART		((uint32_t)&_kernel_start)
