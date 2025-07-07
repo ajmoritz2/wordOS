@@ -177,7 +177,7 @@ map_pages:
 	return (void*) (found + (phys & 0xFFF));
 }
 
-void free(void* addr) {
+void page_free(void* addr) {
 	vm_obj* current = current_vmm->head_vm_obj;
 	vm_obj* prev = NULL;
 	logf("--------------FREED---------------\n\n\n");

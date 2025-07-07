@@ -6,6 +6,9 @@
 
 #define NUM_FRAMES (10 * 1024 * 1024) / 4096
 
+static uint32_t mem_top;
+static uint32_t mem_bottom;
+
 uint32_t kinit(uint32_t*);
 
 void set_memory_map(struct multiboot_tag_mmap *mmap);

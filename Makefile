@@ -18,6 +18,7 @@ OBJS=\
      $(MEMDIR)/paging.o \
      $(MEMDIR)/string.o \
      $(MEMDIR)/pmm.o \
+	 $(MEMDIR)/heap.o \
      $(KERNELDIR)/gdt.o \
      $(KERNELDIR)/idtStub.o \
      $(KERNELDIR)/idt.o \

@@ -8,9 +8,11 @@
 #include "../memory/pmm.h"
 #include "../memory/paging.h"
 #include "../memory/vmm.h"
+#include "../memory/heap.h"
 #include "../drivers/apic.h"
 #include "../drivers/timer.h"
 #include "../drivers/framebuffer.h"
+#include "../drivers/keyboard.h"
 #include "../multiboot/mb_parse.h"
 
 extern char _binary_font_psf_start;
@@ -151,8 +153,8 @@ void logf(char *string, ...)
 }
 
 void panic(char* reason) {
-	logf(" << KERNEL PANIC >> Reason: %s\n", reason);
-
+	printf(" << KERNEL PANIC >> Reason: %s\n", reason);
+// Will need to change for before framebuffer is setup...
 	asm volatile ("cli \n\
 					hlt");
 }
@@ -194,8 +196,14 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	// Can use text now!
 	
 	logf("KERNEL STARTING LOC: %x KERNEL ENDING LOC: %x SIZE: %x\n", &_kernel_start, &_kernel_end, kernel_size); 
-	print("Welcome to WordOS. Home of the METS!\n");
-	print("Fuck the yankees... May the dodgers win!\n");
+	printf("Welcome to WordOS. Home of the METS!\n");
+	printf("Fuck the yankees... %t30May the dodgers win!%t10\n");
+
+	printf("Basic kernel function %t30OK!%t10\n");
+	init_heap();
+
+	init_keyboard();
+
 	while (1) {
 
 	}

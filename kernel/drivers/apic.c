@@ -124,8 +124,8 @@ void init_ioapic()
 	write_ioapic_register(pit_reg, 49); // Setting the PIT irq vec
 	write_ioapic_register(pit_reg+1, 0);
 
-	init_keyboard();
-	write_ioapic_register(keyboard_reg, 50);
+	write_ioapic_register(keyboard_reg, 50); // We set up the APIC keyboard reg before init keyboard IN KERNELC
+											 // Hopefully this doesnt cause stupid errors but it might
 }
 
 // LAPIC Stuff

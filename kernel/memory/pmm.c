@@ -9,6 +9,8 @@
 // START PFA
 #define KERNEL_RESERVED 0x400000
 
+static uint32_t mem_top = 0x2000000, mem_bottom = 0x1000000; // Initial values to jumpstart the code
+
 uint32_t pre_mem = KEND + 0xC0000000;
 
 uint32_t* frames;
@@ -23,7 +25,9 @@ void set_memory_map(struct multiboot_tag_mmap *mmap)
 		multiboot_memory_map_t entry = mmap->entries[i];
 
 		if (entry.type == MULTIBOOT_MEMORY_AVAILABLE) {
-			logf("Available memory from %x to %x\n", entry.addr, entry.addr + entry.len);	
+			mem_bottom = (uint32_t) entry.addr;
+			mem_top = (uint32_t) (entry.addr + entry.len);
+			logf("Available memory from %x to %x\n", mem_bottom, mem_top);	
 		}
 	}
 
@@ -75,13 +79,14 @@ void set_frame(uint32_t frame)
 uint32_t *frame_to_physical(uint32_t bitmap)
 {
 	// Lets start a 1MiB
-	return (uint32_t*) (0x100000 + (bitmap*4096));
+	return (uint32_t*) (mem_bottom + (bitmap*4096));
 }
 
 uint32_t physical_to_frame(uint32_t* physical)
 {
 	// We know starting is at 1MiB
-	return ((uint32_t)physical-0x100000) / 4096;
+	// How can we make this smart with the memory frames? We will do this until we run into problems.
+	return ((uint32_t)physical-mem_bottom) / 4096;
 }
 
 uint32_t *alloc_phys_page()
@@ -93,6 +98,9 @@ uint32_t *alloc_phys_page()
 		return 0;
 	}
 	set_frame(first_frame);
+	if (frame_to_physical(first_frame) > mem_top) {
+		panic("Out of memory!");
+	}
 	return (uint32_t*) frame_to_physical(first_frame);
 }
 

@@ -140,6 +140,7 @@ uint8_t handle_exception(struct isr_frame *frame)
 		if (frame->cr2 == 0) {
 			logf("Null pointer access?\n");
 		}
+		logf("Page fault at %x\n", frame->cr2);
 		panic("MEMORY PAGE FAULT\n");
 		//memory_map(kernel_pd, alloc_phys_page(), (uint32_t*)frame->cr2, 0x3);
 		return 0;
