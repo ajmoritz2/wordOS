@@ -7,8 +7,8 @@
 
 #define RECURSIVE_ADDR 0xFFC00000
 
-static uint32_t kernel_pd[1024] __attribute__((aligned(4096))); // Aligned to the 4 Ki for CPU reasons
-static uint32_t kernel_pt[1024] __attribute__((aligned(4096)));
+uint32_t kernel_pd[1024] __attribute__((aligned(4096))); // Aligned to the 4 Ki for CPU reasons
+uint32_t kernel_pt[1024] __attribute__((aligned(4096)));
 
 // mmap function!!
 // Only use once pmm has been set up!

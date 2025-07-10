@@ -191,6 +191,7 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	set_current_vmm(kvmm);
 
 	logf("PSF START: %x\n", *&_binary_font_psf_start);
+asm volatile ("1: jmp 1b");	
 	struct multiboot_tag_pointers tags = init_multiboot(multiboot_loc + 0xC0000000); // Must call before init_apic to properly parse. Must also be done after paging
 	
 	transfer_dynamic();
@@ -210,9 +211,9 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	printf("Basic kernel function %t30OK!%t10\n");
 
 
-	while (1) {
+//	while (1) {
 		terminal_loop();
-	}
+//	}
 	log_to_serial("\nPROGRAM TO HALT! \n");
 
 }
