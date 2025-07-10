@@ -1,9 +1,11 @@
 #include "../kernel/kernel.h"
 #include "keyboard.h"
-#include "framebuffer.h"
+#include "apic.h"
+#include "../programs/terminal.h"
+#include "../memory/heap.h"
+#include "../memory/string.h"
 #include <stdint.h>
 
-#define MAX_KEY_BUFFER_SIZE	255
 
 #define NORMAL_STATE	0
 #define PREFIX_STATE	1
@@ -31,8 +33,14 @@ kernel_scancode key_lookup[] = {
 	0, KEY_F11, KEY_F12
 };
 
+kernel_scancode extended_key_lookup[] = {
+
+}; // To extend onto
+  
+
+uint8_t *key_codes;
 key_event key_buffer[MAX_KEY_BUFFER_SIZE];
-uint8_t buffer_pos = 0;
+uint8_t key_buffer_pos = 0;
 
 uint8_t current_state = NORMAL_STATE;
 
@@ -41,17 +49,46 @@ uint8_t handle_masks(kernel_scancode key)
 	// TODO: Make the masks global because shift should stay shift until released!
 	switch (key) {
 		case KEY_ALT:
-			key_buffer[buffer_pos].masks |= ALT_MASK;
+			key_buffer[key_buffer_pos].masks |= ALT_MASK;
 			return 1;
 		case KEY_CTRL:
-			key_buffer[buffer_pos].masks |= CTRL_MASK;
+			key_buffer[key_buffer_pos].masks |= CTRL_MASK;
 			return 1;
 		case KEY_SHIFT:
-			key_buffer[buffer_pos].masks |= SHIFT_MASK;
+			key_buffer[key_buffer_pos].masks |= SHIFT_MASK;
 			return 1;
 		default:
 			return 0;
 	}		
+}
+
+void handle_keychange()
+{
+
+	/* This handles SCANCODE SET 1 ONLY
+	 *
+	 * Key releases start at 0x80 and the correpsonding key is CODE - 0x80
+	 * The extend bit really means nothing
+	 * 	
+	 */
+
+	memset(key_codes, 0, 4); // Must change this too if we have more bytes (we wont.)
+	int bytes_in = 0;
+	for (; bytes_in < 4; bytes_in++) {
+		uint8_t code = inportb(0x60);
+		key_codes[bytes_in] = code;
+		if (code != 0xE0)
+			break;
+	}
+
+	key_buffer_pos = (key_buffer_pos + 1) % MAX_KEY_BUFFER_SIZE;
+	key_buffer[key_buffer_pos].code = key_lookup[key_codes[bytes_in] % 0x80];
+	
+	if (key_codes[bytes_in] > 0x80) {
+		key_buffer[key_buffer_pos].masks |= RELEASE_MASK;	
+
+	}
+	// We will have the program handle shifts and whatnot. Not my problem here.
 }
 
 void recieve_scancode(uint8_t code)
@@ -66,8 +103,8 @@ void recieve_scancode(uint8_t code)
 		if (handle_masks(key_lookup[code]))
 			return;
 
-		buffer_pos = (buffer_pos + 1) % MAX_KEY_BUFFER_SIZE;
-		key_buffer[buffer_pos].code = key_lookup[code];
+		key_buffer_pos = (key_buffer_pos + 1) % MAX_KEY_BUFFER_SIZE;
+		key_buffer[key_buffer_pos].code = key_lookup[code];
 	}
 
 	if (current_state == PREFIX_STATE) {
@@ -197,15 +234,22 @@ void init_keyboard()
 
 	outportb(0x60, 0xF0); // Check the scancode set
 	io_wait();
-	outportb(0x60, 0);
+	outportb(0x60, 2);
 	io_wait();
 	uint8_t ack = inportb(0x60);
 	io_wait();
 	uint8_t set = inportb(0x60);
-	logf("Recieved: %x | Scancode set:  %x\n", ack, set);
+	printf("Recieved: %x | Scancode set:  %x\n", ack, set); // Uhh this is wrong
+															// The keyboard may use scancode set 2 but it gets translated into 1
+	// for now Im going to leave it that way, but in the future I should really just remove the translation
 
 	if (!(trans >> 6) && set != 0x43)
 		panic("Keyboard type not supported! Sowwy :3");
 	else
 		logf("Keyboard type supported! Continue!\n");
+
+	key_codes = kalloc(4); // 4 bytes of data ig
+	uint8_t keyboard_reg = 0x12;	
+	write_ioapic_register(keyboard_reg, 50); // We set up the APIC keyboard reg before init keyboard IN KERNELC
+	printf("Keyboard Function: %t30OK!%t10\n");
 }

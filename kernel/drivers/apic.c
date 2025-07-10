@@ -120,12 +120,9 @@ void init_ioapic()
 
 	// Set up PIT timer on the ioapic
 	uint8_t pit_reg = (ioapic_pit_irq() * 2) + 0x10;
-	uint8_t keyboard_reg = 0x12;	
 	write_ioapic_register(pit_reg, 49); // Setting the PIT irq vec
 	write_ioapic_register(pit_reg+1, 0);
 
-	write_ioapic_register(keyboard_reg, 50); // We set up the APIC keyboard reg before init keyboard IN KERNELC
-											 // Hopefully this doesnt cause stupid errors but it might
 }
 
 // LAPIC Stuff

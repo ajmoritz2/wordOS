@@ -112,7 +112,7 @@ void irq_handler(int num) {
 		end_calibration();
 		break;
 	case 0x32:
-		handle_keyboard();
+		handle_keychange();
 		break;
 	case 0x80: // System calls for when that is added...
 		break;

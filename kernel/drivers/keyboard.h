@@ -1,21 +1,29 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-#define CTRL_MASK	1
-#define ALT_MASK	2
-#define SHIFT_MASK	4
+#define CTRL_MASK		1
+#define ALT_MASK		2
+#define SHIFT_MASK		4
+#define RELEASE_MASK	8
+
+#define MAX_KEY_BUFFER_SIZE	255
+
+extern uint8_t key_buffer_pos;
 
 typedef struct {
 	uint8_t code;
 	uint8_t masks;
 } key_event;
 
+extern key_event key_buffer[];
+
 void recieve_scancode(uint8_t code);
+void handle_keychange();
 void init_keyboard();
 char get_printable_char(key_event key);
 
 typedef enum {
-	KEY_SPACE, KEY_BACKSPACE, KEY_TAB,
+	KEY_NULL, KEY_SPACE, KEY_BACKSPACE, KEY_TAB,
 	KEY_ESC, KEY_RETURN, KEY_SHIFT, KEY_CTRL, KEY_ALT, KEY_CAPSLOCK,
 
 	// Numbers

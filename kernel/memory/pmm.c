@@ -140,7 +140,7 @@ uint32_t kinit(uint32_t* after_mb)
 	// Because I'm lazy and I hope they wont change,
 	// I am just going to hardcode the initial kernel frames.
 	// We start at frame 0 bit 0 and go until bit 17, but I will give the first 32
-	for (int i = 0; i < 32; i++)
+	for (int i = 0; i < 48; i++)
 	{
 		set_frame(i);
 	}

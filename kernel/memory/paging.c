@@ -102,7 +102,7 @@ void init_kpt(uint32_t* pt, uint32_t tag_size)
 	logf("PAGES: %d\n", init_pages);							      // but makes my life easy...
 	for (uint32_t i = 256; i < 1024; i++)
 	{
-		if (i > 257+init_pages) flag = 0x2;
+		if (i > 260+init_pages) flag = 0x2;
 		//logf("Kernel page is: %d at %d\n", pt[i] & 3, i);
 		if (!(pt[i] &  3)) {
 			pt[i] = (j * 0x1000) + 0x100000 | flag; // Mark kernel pages as present because I'm lazy af

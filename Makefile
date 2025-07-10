@@ -30,10 +30,15 @@ OBJS=\
 	 $(DRIVERDIR)/framebuffer.o \
      $(KERNELDIR)/kernel.o
 
-.PHONY: all
+include kernel/programs/local.mk
+
+.PHONY: all, clean
 
 all: word.bin
 
+
+clean:   
+	rm -rf $(OBJS)
 word.bin: $(OBJS) $(ARCHDIR)/linkerNP.ld
 	$(CC) -T $(ARCHDIR)/linkerNP.ld -o $@ $(CFLAGS) -nostdlib $(OBJS) fonts/font.o -lgcc
 	grub-file --is-x86-multiboot2 word.bin
@@ -42,5 +47,4 @@ word.bin: $(OBJS) $(ARCHDIR)/linkerNP.ld
 	$(CC) -std=gnu99 -ffreestanding $< -o $@
 
 %.c: %.o
-	$(CC) -c $< -o $@ $(CFLAGS)
-
+	$(CC) -g -c $< -o $@ $(CFLAGS)

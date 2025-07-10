@@ -34,10 +34,8 @@ void* memmove(void* s1, const void* s2, size_t n)
 
 void* memset(void * dest, int c, size_t n)
 { 
-	// Size is NOT in bytes. It is in 4 bytes
-	uint32_t i;
+	// Size is in bytes
 	uint8_t *p = dest;
-	i = 0;
 	while (n > 0) {
 		*p = c;
 		p++;

@@ -33,7 +33,7 @@ mb2_hdr_end:
 # init all the stack
 .section .bootstrap_stack, "aw", @nobits
 boot_stack_base:
-	.skip  16384 # 16 KiB More than enough for a nice stack
+	.skip  4096# 16 KiB More than enough for a nice stack
 stack_top:
 
 # create paging dir
@@ -53,7 +53,7 @@ _start:
 	movl $(boot_page_table1 - 0xC0000000), %edi # Here we are just placing values into registers to properly map
 	# ^ is the phys addr of the boot page table
 	movl $0, %esi
-	movl $1024, %ecx # Mapping 1024 pages
+	movl $2048, %ecx # Mapping 1024 pages
 
 1:
 	cmpl $_kernel_start, %esi # Doing esi (0) - _kernel_start (0x00100000)

@@ -28,6 +28,10 @@ struct multiboot_tag_old_acpi* old_acpi;
 uint32_t* get_pixel_addr (uint32_t x, uint32_t y)
 {
 
+	if (x > fb->common.framebuffer_width)
+		x = fb->common.framebuffer_width;
+	if (y > fb->common.framebuffer_height)
+		y = fb->common.framebuffer_height;
 	uint32_t row = y * (fb->common.framebuffer_pitch);
 	uint32_t column = x * (bypp);
 	uint32_t final_addr = (uint32_t) fb_virt_addr + row + column;
@@ -46,6 +50,8 @@ void init_framebuffer() {
 	fb_virt_addr = (uint32_t*) page_kalloc(num_pages, 0x3, (uint32_t) fb_addr);
 
 	bypp = fb->common.framebuffer_bpp/8;
+	fb_set_width(fb->common.framebuffer_width);
+	fb_set_height(fb->common.framebuffer_height);
 }
 
 // MADT Parsing

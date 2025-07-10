@@ -14,6 +14,7 @@
 #include "../drivers/framebuffer.h"
 #include "../drivers/keyboard.h"
 #include "../multiboot/mb_parse.h"
+#include "../programs/terminal.h"
 
 extern char _binary_font_psf_start;
 
@@ -124,6 +125,9 @@ void logf(char *string, ...)
 				case '%':
 					outportb(PORT, *string);
 					break;
+				case 't':
+					string+=2;
+					break;
 				case 'd':
 					log_integer_to_serial(va_arg(params, uint32_t));
 					break;
@@ -177,6 +181,7 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	}
 	uint32_t* tag_size = (uint32_t*) (multiboot_loc + 0xC0000000);
 	uint32_t kernel_size = ((uint32_t) &_kernel_end - ((uint32_t)&_kernel_start + 0xC0000000));
+	logf("Kernel Size %x\n", kernel_size);
 	disable_pic();
 	uint32_t* kpd = pg_init(entry_pd, *tag_size);
 	gdt_install();
@@ -196,16 +201,17 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	// Can use text now!
 	
 	logf("KERNEL STARTING LOC: %x KERNEL ENDING LOC: %x SIZE: %x\n", &_kernel_start, &_kernel_end, kernel_size); 
+	init_heap();
+	init_terminal();
+	init_keyboard();
 	printf("Welcome to WordOS. Home of the METS!\n");
 	printf("Fuck the yankees... %t30May the dodgers win!%t10\n");
 
 	printf("Basic kernel function %t30OK!%t10\n");
-	init_heap();
 
-	init_keyboard();
 
 	while (1) {
-
+		terminal_loop();
 	}
 	log_to_serial("\nPROGRAM TO HALT! \n");
 
