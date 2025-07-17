@@ -19,15 +19,15 @@ OBJS+=\
      $(MEMDIR)/string.o \
 	 $(MEMDIR)/heap.o \
      $(KERNELDIR)/idtStub.o \
-     $(MEMDIR)/vmm.o \
-     $(MBDIR)/mb_parse.o \
      $(DRIVERDIR)/apic.o \
 	 $(DRIVERDIR)/timer.o \
 	 $(DRIVERDIR)/keyboard.o \
 	 $(DRIVERDIR)/framebuffer.o \
      $(ARCHDIR)/bootNP.o \
-     $(KERNELDIR)/gdt.o \
      $(MEMDIR)/pmm.o \
+     $(MEMDIR)/vmm.o \
+     $(MBDIR)/mb_parse.o \
+     $(KERNELDIR)/gdt.o \
      $(KERNELDIR)/idt.o \
      $(MEMDIR)/paging.o \
      $(KERNELDIR)/kernel.o \

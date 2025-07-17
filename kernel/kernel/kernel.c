@@ -157,7 +157,7 @@ void logf(char *string, ...)
 }
 
 void panic(char* reason) {
-	printf(" << KERNEL PANIC >> Reason: %s\n", reason);
+	logf(" << KERNEL PANIC >> Reason: %s\n", reason);
 // Will need to change for before framebuffer is setup...
 	asm volatile ("cli \n\
 					hlt");
@@ -181,23 +181,23 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	}
 	uint32_t* tag_size = (uint32_t*) (multiboot_loc + 0xC0000000);
 	uint32_t kernel_size = ((uint32_t) &_kernel_end - ((uint32_t)&_kernel_start + 0xC0000000));
-	logf("Kernel Size %x\n", kernel_size);
+	logf("Kernel Size %x, multiboot_loc: %x, tag_size: %x\n", kernel_size, multiboot_loc, *tag_size);
 	disable_pic();
 	uint32_t* kpd = pg_init(entry_pd, *tag_size);
 	gdt_install();
 	init_idt();
-	uint32_t kalloc_bottom = kinit(tag_size); // Bandaid fix done here. Will bite me in the ass later...
+	uint32_t kalloc_bottom = kinit((uint32_t *) (multiboot_loc + *tag_size)); // Bandaid fix done here. Will bite me in the ass later...
 	vmm* kvmm = create_vmm(kpd, 0xCC000000, 0xFFE00000);
 	set_current_vmm(kvmm);
 
 	logf("PSF START: %x\n", *&_binary_font_psf_start);
-asm volatile ("1: jmp 1b");	
 	struct multiboot_tag_pointers tags = init_multiboot(multiboot_loc + 0xC0000000); // Must call before init_apic to properly parse. Must also be done after paging
 	
 	transfer_dynamic();
 	vmm_transfer_dynamic(kpd);
 	// Do everything you want with the multiboot tags before this point. Past here it will be overwritten.	
 	init_apic(kvmm);
+	init_framebuffer();
 	init_font();
 	// Can use text now!
 	

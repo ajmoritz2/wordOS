@@ -152,8 +152,9 @@ uint8_t handle_exception(struct isr_frame *frame)
 uint32_t* pg_init(uintptr_t *entry_pd, uint32_t tag_size)
 {
 	// Copy over tables into C code for easier access
+	
 	newinit_pd(kernel_pd);
-	memset(kernel_pd, 0, 4096);
+	memset(kernel_pd, 0, 1024);
 	memcpy(kernel_pt, (uint32_t*)((entry_pd[768] & 0xFFFFF000) + 0xC0000000), 4096);
 	init_kpt(kernel_pt, tag_size); // PRAY TO GOD
 	kernel_pd[768] = (uint32_t)PHYSADDR((uint32_t) kernel_pt) | 3;

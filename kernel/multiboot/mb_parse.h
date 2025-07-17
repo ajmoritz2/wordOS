@@ -62,5 +62,6 @@ uint32_t* get_pixel_addr(uint32_t x, uint32_t y);
 
 void* parse_MADT(uint8_t entry_id, uint8_t count);
 struct multiboot_tag_pointers init_multiboot(uint32_t addr);
+void init_framebuffer();
 
 #endif

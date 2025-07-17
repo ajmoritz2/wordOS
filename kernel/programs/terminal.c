@@ -29,8 +29,6 @@ uint32_t term_bg = 0;
 uint32_t term_fg = 0xf0f0f000;
 
 
-void func1(){}
-void func2(){}
 
 void scroll_text_buffer_down()
 {

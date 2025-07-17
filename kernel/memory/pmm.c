@@ -79,14 +79,14 @@ void set_frame(uint32_t frame)
 uint32_t *frame_to_physical(uint32_t bitmap)
 {
 	// Lets start a 1MiB
-	return (uint32_t*) (mem_bottom + (bitmap*4096));
+	return (uint32_t*) (0x100000 + (bitmap*4096));
 }
 
 uint32_t physical_to_frame(uint32_t* physical)
 {
 	// We know starting is at 1MiB
 	// How can we make this smart with the memory frames? We will do this until we run into problems.
-	return ((uint32_t)physical-mem_bottom) / 4096;
+	return ((uint32_t)physical-0x100000) / 4096;
 }
 
 uint32_t *alloc_phys_page()
@@ -98,7 +98,7 @@ uint32_t *alloc_phys_page()
 		return 0;
 	}
 	set_frame(first_frame);
-	if (frame_to_physical(first_frame) > mem_top) {
+	if (frame_to_physical(first_frame) > 0x1000000) {
 		panic("Out of memory!");
 	}
 	return (uint32_t*) frame_to_physical(first_frame);
@@ -126,15 +126,16 @@ void transfer_dynamic()
 
 uint32_t kinit(uint32_t* after_mb) 
 {
+	logf("after_mb: %x\n", after_mb);
 	// Start the page frames
 	if ((uint32_t)after_mb >= &_kernel_end) {
-		pre_mem += *after_mb;
+		pre_mem += (uint32_t) after_mb;
 	}
 
 
-	logf("KEND %x, after_mb %x, PREMEM: %x\n", &_kernel_end, (uint32_t) *after_mb, pre_mem);
+	logf("KEND %x, after_mb %x, PREMEM: %x\n", &_kernel_end, (uint32_t) after_mb, pre_mem);
 	logf("NUM FRAMES %x\n", NUM_FRAMES);
-	num_frames = NUM_FRAMES; // 10 MiB of pages
+	num_frames = 4; // 10 MiB of pages
 	frames = pre_malloc(num_frames, 0);
 	memset(frames, 0, num_frames);
 	// Because I'm lazy and I hope they wont change,

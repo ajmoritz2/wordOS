@@ -24,6 +24,9 @@ struct multiboot_tag_framebuffer* fb;
 static uint32_t bypp;
 struct multiboot_tag_old_acpi* old_acpi;
 
+void test1(){}
+void test2(){}
+
 // FRAMEBUFFER BALONEY TODO: Move to own file...
 uint32_t* get_pixel_addr (uint32_t x, uint32_t y)
 {
@@ -155,8 +158,7 @@ struct multiboot_tag_pointers init_multiboot(uint32_t addr)
 
 	if (old_acpi)
 		init_rsdt_v1();	
-	init_framebuffer();
-	set_memory_map(all_tags.mmap);
+	//set_memory_map(all_tags.mmap);
 
 	return all_tags;
 }
