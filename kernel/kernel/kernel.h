@@ -1,6 +1,8 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
+#define KERNEL_VERSION  "0.0.4"
+
 #include <stdint.h>
 
 extern uint32_t _kernel_start;
@@ -22,6 +24,8 @@ extern uint32_t _kernel_end;
 
 #define KBASE &_kernel_end
 #define PHYSTOP ((uint32_t)(KBASE + 128*1024*1024))
+
+extern uint8_t task_state;
 
 void panic(char* reason);
 unsigned char inportb(int portnum);

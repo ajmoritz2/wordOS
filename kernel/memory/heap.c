@@ -1,4 +1,5 @@
 #include "vmm.h"
+#include "string.h"
 #include "heap.h"
 #include "../kernel/kernel.h"
 #include "../programs/terminal.h"
@@ -35,7 +36,6 @@ void *kalloc(size_t size)
 	struct mem_header *past_node = 0;
 
 	while ((uint8_t *) cur_node < (uint8_t *) cur_heap_pos) {
-		logf("Cur node %x\n", cur_node);
 		if (cur_node->size >= size && cur_node->status == HEAP_FREE) {
 			// We only need to worry about splitting if it isnt a new node
 			if (cur_node->size - size >= HEAP_MIN_SPLIT_SIZE) {
@@ -50,11 +50,7 @@ void *kalloc(size_t size)
 			
 			cur_node->status = HEAP_USED;
 			cur_node->prev = past_node;
-			if (past_node) {
-				cur_node->next = past_node->next;
-				past_node->next = cur_node;
-			}
-			return (void *) (cur_node);
+			return (void *) (cur_node + 1);
 		}
 		past_node = cur_node;
 		cur_node = (struct mem_header *)((uint8_t *)cur_node + (cur_node->size + sizeof(struct mem_header)));
@@ -80,12 +76,12 @@ void kfree(void *mem)
 {
 	// Size does NOT include sizeof(struct mem_header)
 	struct mem_header *node = (struct mem_header *) (mem - sizeof(struct mem_header));
+	memset(node + 1, 0, node->size);
 
 	node->status = HEAP_FREE;
 	struct mem_header *node_next = node->next;
 	struct mem_header *node_prev = node->prev;
 
-		printf("Sizeof mem_header: %x\n", sizeof(struct mem_header));
 	if (node_next && node_next->status == HEAP_FREE) {
 		node->size += node_next->size + sizeof(struct mem_header);	
 		node_next->size = 0;

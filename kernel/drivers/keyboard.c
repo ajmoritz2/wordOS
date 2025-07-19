@@ -42,7 +42,7 @@ uint8_t *key_codes;
 key_event key_buffer[MAX_KEY_BUFFER_SIZE];
 uint8_t key_buffer_pos = 0;
 
-uint8_t current_state = NORMAL_STATE;
+static uint8_t current_masks = 0;
 
 uint8_t handle_masks(kernel_scancode key)
 {
@@ -81,148 +81,24 @@ void handle_keychange()
 			break;
 	}
 
+
 	key_buffer_pos = (key_buffer_pos + 1) % MAX_KEY_BUFFER_SIZE;
 	key_buffer[key_buffer_pos].code = key_lookup[key_codes[bytes_in] % 0x80];
 	
 	if (key_codes[bytes_in] > 0x80) {
 		key_buffer[key_buffer_pos].masks |= RELEASE_MASK;	
-
 	}
+
+	if (key_lookup[key_codes[bytes_in] % 0x80] == KEY_SHIFT) {
+		if (key_buffer[key_buffer_pos].masks & RELEASE_MASK)
+			current_masks &= ~SHIFT_MASK;
+		else
+			current_masks |= SHIFT_MASK;
+	}
+
+	key_buffer[key_buffer_pos].masks |= current_masks;	
+
 	// We will have the program handle shifts and whatnot. Not my problem here.
-}
-
-void recieve_scancode(uint8_t code)
-{
-	if (code != 0xE0 && (code > 85))
-		return;
-	if (current_state == NORMAL_STATE) {
-		if (code == 0xE0) {
-			current_state = PREFIX_STATE;
-			return;
-		}	
-		if (handle_masks(key_lookup[code]))
-			return;
-
-		key_buffer_pos = (key_buffer_pos + 1) % MAX_KEY_BUFFER_SIZE;
-		key_buffer[key_buffer_pos].code = key_lookup[code];
-	}
-
-	if (current_state == PREFIX_STATE) {
-		current_state = NORMAL_STATE;
-		kernel_scancode key = key_lookup[code];
-		handle_masks(key);
-	}
-}
-
-char get_printable_char(key_event key)
-{
-	uint8_t shifted = key.masks & SHIFT_MASK;
-	switch(key.code) {
-	case KEY_A:
-		return shifted ? 'A' : 'a';
-	case KEY_B:
-		return shifted ? 'B': 'b';
-	case KEY_C:
-		return shifted ? 'C' : 'c';
-	case KEY_D:
-		return shifted ? 'D' : 'd';
-	case KEY_E:
-		return shifted ? 'E' : 'e';
-	case KEY_F:
-		return shifted ? 'F' : 'f';
-	case KEY_G:
-		return shifted ? 'G' : 'g';
-	case KEY_H:
-		return shifted ? 'H' : 'h';
-	case KEY_I:
-		return shifted ? 'I' : 'i';
-	case KEY_J:
-		return shifted ? 'J' : 'j';
-	case KEY_K:
-		return shifted ? 'K' : 'k';
-	case KEY_L:
-		return shifted ? 'L' : 'l';
-	case KEY_M:
-		return shifted ? 'M' : 'm';
-	case KEY_N:
-		return shifted ? 'N' : 'n';
-	case KEY_O:
-		return shifted ? 'O' : 'o';
-	case KEY_P:
-		return shifted ? 'P' : 'p';
-	case KEY_Q:
-		return shifted ? 'Q' : 'q';
-	case KEY_R:
-		return shifted ? 'R' : 'r';
-	case KEY_S:
-		return shifted ? 'S' : 's';
-	case KEY_T:
-		return shifted ? 'T' : 't';
-	case KEY_U:
-		return shifted ? 'U' : 'u';
-	case KEY_V:
-		return shifted ? 'V' : 'v';
-	case KEY_W:
-		return shifted ? 'W' : 'w';
-	case KEY_X:
-		return shifted ? 'X' : 'x';
-	case KEY_Y:
-		return shifted ? 'Y' : 'y';
-	case KEY_Z:
-		return shifted ? 'Z' : 'z';
-	case KEY_1:
-		return shifted ? '!' : '1';
-	case KEY_2:
-		return shifted ? '@' : '2';
-	case KEY_3:
-		return shifted ? '#' : '3';
-	case KEY_4:
-		return shifted ? '$' : '4';
-	case KEY_5:
-		return shifted ? '%' : '5';
-	case KEY_6:
-		return shifted ? '^' : '6';
-	case KEY_7:
-		return shifted ? '&' : '7';
-	case KEY_8:
-		return shifted ? '*' : '8';
-	case KEY_9:
-		return shifted ? '(' : '9';
-	case KEY_0:
-		return shifted ? ')' : '0';
-	case KEY_LBRACKET:
-		return shifted ? '{' : '[';
-	case KEY_RBRACKET:
-		return shifted ? '}' : ']';
-	case KEY_FSLASH:
-		return shifted ? '?' : '/';
-	case KEY_BSLASH:
-		return shifted ? '|' : '\\';
-	case KEY_SINGLE_QUOTE:
-		return shifted ? '"' : '\'';
-	case KEY_SEMI_COLON:
-		return shifted ? ':' : ';';
-	case KEY_PERIOD:
-		return shifted ? '>' : '.';
-	case KEY_COMMA:
-		return shifted ? '<' : ',';
-	case KEY_EQUALS:
-		return shifted ? '+' : '=';
-	case KEY_MINUS:
-		return shifted ? '_' : '-';
-	case KEY_BACKTICK:
-		return shifted ? '~' : '`';
-	case KEY_SPACE:
-		return ' ';
-	case KEY_TAB:
-		return '\t';
-	case KEY_BACKSPACE:
-		return 0x8;
-	case KEY_RETURN:
-		return '\n';
-	default:
-		return 0;
-	}
 }
 
 void init_keyboard()
@@ -250,6 +126,7 @@ void init_keyboard()
 
 	key_codes = kalloc(4); // 4 bytes of data ig
 	uint8_t keyboard_reg = 0x12;	
-	write_ioapic_register(keyboard_reg, 50); // We set up the APIC keyboard reg before init keyboard IN KERNELC
+	uint32_t ioapic_data = 50; // 50 is the vector
+	write_ioapic_register(keyboard_reg, ioapic_data); // We set up the APIC keyboard reg before init keyboard IN KERNELC
 	printf("Keyboard Function: %t30OK!%t10\n");
 }

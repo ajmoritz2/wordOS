@@ -74,6 +74,7 @@ void init_idt()
 
 uint8_t exc_print(struct isr_frame *frame)
 {
+	logf("IP: %x\n", frame->eip);
 	uint32_t code = 1;
 	switch (frame->isr_no) {
 		case 0x00:
@@ -96,12 +97,6 @@ uint8_t exc_print(struct isr_frame *frame)
 	}
 
 	return code;
-}
-
-void handle_keyboard()
-{
-	uint8_t scan_code = inportb(0x60);
-	recieve_scancode(scan_code);
 }
 
 void irq_handler(int num) {

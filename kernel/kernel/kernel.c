@@ -18,6 +18,8 @@
 
 extern char _binary_font_psf_start;
 
+uint8_t task_state = 0;
+
 extern inline unsigned char inportb (int portnum)
 {
 	unsigned char data=0;
@@ -210,10 +212,14 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 
 	printf("Basic kernel function %t30OK!%t10\n");
 
-
-//	while (1) {
+	printf("Starting terminal...\n");
+	start_terminal();
+	while (1) {
 		terminal_loop();
-//	}
+
+		if (!task_state)
+			asm volatile ("hlt");
+	}
 	log_to_serial("\nPROGRAM TO HALT! \n");
 
 }

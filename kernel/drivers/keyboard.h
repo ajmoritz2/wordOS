@@ -17,10 +17,8 @@ typedef struct {
 
 extern key_event key_buffer[];
 
-void recieve_scancode(uint8_t code);
 void handle_keychange();
 void init_keyboard();
-char get_printable_char(key_event key);
 
 typedef enum {
 	KEY_NULL, KEY_SPACE, KEY_BACKSPACE, KEY_TAB,

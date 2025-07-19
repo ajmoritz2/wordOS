@@ -2,6 +2,7 @@
 #define TERMINAL_PROG_C
 
 void init_terminal();
+void start_terminal();
 void printf(char *string, ...);
 void tflush();
 void terminal_loop();

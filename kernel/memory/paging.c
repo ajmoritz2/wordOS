@@ -24,11 +24,11 @@ void memory_map(uint32_t* root_pd, uint32_t* phys,
 	uint32_t pd_index = (uint32_t) ((uint32_t)virt >> 22);
 	uint32_t pt_index = (uint32_t) (((uint32_t)virt >> 12) & 0x3FF);
 
-	if (root_pd[pd_index] == 0) {
+	if (!(root_pd[pd_index] & 1)) {
 	       	create_new_pt(root_pd, pd_index);
 	}
 		
-	uint32_t* page_table = (uint32_t*) (RECURSIVE_ADDR | (pd_index << 12)); // Should be correct no matter what
+	uint32_t* page_table = (uint32_t*) (RECURSIVE_ADDR + (pd_index * 4096)); // Should be correct no matter what
 	if ((uint32_t)phys & 0x3FF) { log_to_serial("PHYSICAL ADDRESS NOT PAGE ALIGNED\n"); return;}
 
 	page_table[pt_index] = (uint32_t)phys | flags;	
@@ -86,7 +86,7 @@ void newinit_pd(uint32_t* pd)
 {
 	int i;
 	for (i = 0; i < 1024; i++) {
-		pd[i] = 0x3;
+		pd[i] = 0x2;
 	}
 	pd[1023] = (uint32_t) (pd - 0xC0000000) | 3;
 }
