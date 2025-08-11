@@ -17,7 +17,7 @@ typedef struct
 	uint32_t base;
 } __attribute__((packed)) idtr_t;
 
-struct isr_frame {
+typedef struct isr_frame {
 	uint32_t cr3;
 	uint32_t cr2;
 	uint32_t cr0;
@@ -31,10 +31,13 @@ struct isr_frame {
 
 	uint32_t isr_no;
 	uint32_t isr_err;
+
 	uint32_t eip;
 	uint32_t cs;
 	uint32_t eflags;	
-} __attribute__((packed));
+	uint32_t esp;
+	uint32_t ss;
+} __attribute__((packed)) cpu_status_t;
 
 extern void isr_stub_0(void);
 extern void isr_stub_1(void);

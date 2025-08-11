@@ -13,16 +13,8 @@ LDFILE?=linker.ld
 
 KERNELC?=kernel.c
 
-include kernel/programs/local.mk
 
 OBJS+=\
-     $(MEMDIR)/string.o \
-	 $(MEMDIR)/heap.o \
-     $(KERNELDIR)/idtStub.o \
-     $(DRIVERDIR)/apic.o \
-	 $(DRIVERDIR)/timer.o \
-	 $(DRIVERDIR)/keyboard.o \
-	 $(DRIVERDIR)/framebuffer.o \
      $(ARCHDIR)/bootNP.o \
      $(MEMDIR)/pmm.o \
      $(MEMDIR)/vmm.o \
@@ -31,7 +23,17 @@ OBJS+=\
      $(KERNELDIR)/idt.o \
      $(MEMDIR)/paging.o \
      $(KERNELDIR)/kernel.o \
+     $(MEMDIR)/string.o \
+	 $(MEMDIR)/heap.o \
+     $(KERNELDIR)/idtStub.o \
+     $(DRIVERDIR)/apic.o \
+	 $(DRIVERDIR)/timer.o \
+	 $(DRIVERDIR)/keyboard.o \
+	 $(DRIVERDIR)/framebuffer.o \
+	 $(KERNELDIR)/scheduler.o \
 
+include kernel/programs/local.mk
+include kernel/utils/utils.mk
 
 .PHONY: all, clean
 

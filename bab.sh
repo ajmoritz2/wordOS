@@ -4,4 +4,4 @@ make
 ./iso.sh
 ./clean.sh
 echo ---------------------------- SYSTEM STARTING -----------------------------------
-qemu-system-i386 -no-reboot -no-shutdown -serial file:words.log -cdrom wordos.iso -m 256M
+qemu-system-i386 -no-reboot -no-shutdown -serial stdio -cdrom wordos.iso -m 256M

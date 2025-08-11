@@ -13,25 +13,42 @@ typedef struct vm_obj {
 	uintptr_t base; // First bit is a present flag
 	size_t length;
 	size_t flags;
-	struct vm_obj* next;
 } vm_obj;
 
-typedef struct {
+typedef struct vmm{
 	uint32_t* root_pd;
-	vm_obj* head_vm_obj;
+	struct rbtree_node* root;
 	uintptr_t vm_obj_store_addr;
 	uint32_t low;	// UNUSED FOR NOW
 	uint32_t high;	// Extra arguments just in case I want to seperate address spaces.
 } vmm;
 
+extern vmm *current_vmm;
+extern vmm *kernel_vmm;
+
 uint32_t convert_x86_32_vm_flags(size_t);
 
-vmm* create_vmm(uint32_t*, uint32_t low, uint32_t high);
+vmm* create_vmm(uint32_t *root_pd, uint32_t low, uint32_t high, void *store_page);
+//void init_user_memory();
 
+void set_kernel_vmm(vmm *kvmm);
 void set_current_vmm(vmm*);
-void vmm_transfer_dynamic(uint32_t* root_pd);
+void vmm_transfer_dynamic(vmm **to_trans, uint32_t* root_pd);
 
-void* page_kalloc(size_t length, size_t flags, uint32_t phys); // Allocate a vm obj and push it to the current vmm.
-void page_free(void* addr);
+void *alloc_stack();
+void init_user_memory();
+
+
+void* vmm_page_alloc(vmm *cvmm, size_t length, size_t flags, uint32_t phys);
+void vmm_page_free(vmm *cvmm, void* addr);
+
+
+void *page_kalloc(size_t length, size_t flags, uint32_t phys);
+
+void page_kfree(void *addr);
+
+void *page_alloc(size_t length, size_t flags, uint32_t phys);
+
+void page_free(void *addr);
 
 #endif

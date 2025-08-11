@@ -17,5 +17,6 @@ void* __attribute__((weak)) memset(void* dest, int c, size_t n);
 uint32_t strlen(char *string);
 
 uint8_t strcmp(char *s1, char* s2, size_t size);
+void strncpy(char *dst, char *src, size_t n);
 
 #endif

@@ -64,3 +64,13 @@ uint8_t strcmp(char *s1, char *s2, size_t size)
 
 	return 1;
 }
+
+// Copy s2 into s1
+void strncpy(char *dst, char *src, size_t n)
+{
+	for (int i = 0; i < n; i++) {
+		src[n] = dst[n];
+		if (!src[n])
+			break;
+	}
+}

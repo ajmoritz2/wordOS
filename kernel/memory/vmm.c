@@ -8,11 +8,16 @@
 #include <stddef.h>
 #include "../kernel/kernel.h"
 #include "../memory/string.h"
+#include "../programs/terminal.h"
+#include "../utils/rbtree.h"
 #include "paging.h"
 #include "pmm.h"
 #include "vmm.h"
 
 vmm* current_vmm = NULL;
+vmm *kernel_vmm;
+
+// TODO: Rewrite this entire file because this sucks...
 
 uint32_t convert_x86_32_vm_flags(size_t flags)
 {
@@ -25,37 +30,71 @@ uint32_t convert_x86_32_vm_flags(size_t flags)
 	return value;
 }
 
-vmm* create_vmm(uint32_t* root_pd, uint32_t low, uint32_t high)
+vmm* create_vmm(uint32_t* root_pd, uint32_t low, uint32_t high, void *store_page)
 {
 
-	memory_map(root_pd, alloc_phys_page(), (uint32_t*)TEMP_PAGE_VIRT, 0x3); 
+	if (!store_page) {
+		memory_map(root_pd, alloc_phys_page(), (uint32_t*)TEMP_PAGE_VIRT, 0x3); 
+		store_page = (void*) TEMP_PAGE_VIRT;
+	}
 	
-	memset((void*)TEMP_PAGE_VIRT, 0, 4096);
-	vmm *new_vmm = (vmm*)TEMP_PAGE_VIRT;
+	memset((void*)store_page, 0, 4096);
+	vmm *new_vmm = (vmm*)store_page;
 	new_vmm->root_pd = (uint32_t*)root_pd;
-	new_vmm->head_vm_obj = NULL;
-	new_vmm->vm_obj_store_addr = TEMP_PAGE_VIRT + sizeof(vmm);
+	new_vmm->root = NULL;
+	new_vmm->vm_obj_store_addr = (uintptr_t) (store_page + sizeof(vmm));
 	logf("Low addr marked at %x. High marked at %x\n\n", BYTE_PGROUNDUP(low), high);
 	new_vmm->low = BYTE_PGROUNDUP(low);
 	new_vmm->high = high;
 
+	make_node(new_vmm, new_vmm->low, new_vmm->high, 0); // Create first free entry
+	logf("VMM Free tree created. Size %x\n", new_vmm->root->size);
+
 	return new_vmm;
 }
 
-void vmm_transfer_dynamic(uint32_t* root_pd)
+void *page_kalloc(size_t length, size_t flags, uint32_t phys)
+{
+	return vmm_page_alloc(kernel_vmm, length, flags, phys);
+}
+
+void page_kfree(void *addr)
+{
+	vmm_page_free(kernel_vmm, addr);
+}
+
+void *page_alloc(size_t length, size_t flags, uint32_t phys)
+{
+	return vmm_page_alloc(current_vmm, length, flags, phys);
+}
+
+void page_free(void *addr)
+{
+	vmm_page_free(current_vmm, addr);
+}
+
+void vmm_transfer_dynamic(vmm **to_trans, uint32_t* root_pd)
 {
 	virtual_t *new_vmm_sto = page_kalloc(4096, 0x3, 0);
 
-	memcpy(new_vmm_sto, current_vmm, 4096);
-	logf("Old VMM storage: %x, New VMM storage: %x\n", current_vmm, new_vmm_sto);
+	memcpy(new_vmm_sto, *to_trans, 4096);
+	logf("Old VMM storage: %x, New VMM storage: %x\n", *to_trans, new_vmm_sto);
 
+	uint32_t root_offset = (uint32_t) (*to_trans)->root - (uint32_t) *to_trans;
 
-	virtual_t *old_vmm = (virtual_t *)current_vmm;
-	current_vmm = (vmm *)new_vmm_sto;
+	virtual_t *old_vmm = (virtual_t *)to_trans;
+	*to_trans = (vmm *)new_vmm_sto;
 
-	current_vmm->vm_obj_store_addr = $4r current_vmm + (current_vmm->vm_obj_store_addr & 0x3FF);
+	(*to_trans)->vm_obj_store_addr = $4r *to_trans + ((*to_trans)->vm_obj_store_addr & 0x3FF);
+	(*to_trans)->root = (rbnode_t *) ((uint32_t) *to_trans + root_offset);
+
 
 	memory_unmap(root_pd, old_vmm);
+}
+
+void set_kernel_vmm(vmm *kvmm)
+{
+	kernel_vmm = kvmm;
 }
 
 void set_current_vmm(vmm* new_vmm)
@@ -64,144 +103,95 @@ void set_current_vmm(vmm* new_vmm)
 
 }
 
-void* alloc_vm_obj()
+void* vmm_page_alloc(vmm *cvmm, size_t length, size_t flags, uint32_t phys)
 {
-	// Storage page: 0xFF7E8000 - 0xFF7E9000. Should be noted this is kernel only.
-	// When userland is created, must add dynamic allocation for the vmms.
-	// Should be fine with Kernel VMM being hardcoded into memory though for jumpstarting.
-	// Can expand this later, but each vmm can hold 2048 allocs	so probably wont need to.
-
-	void* start_page = (void*) current_vmm;
-	uint32_t end_page = (uint32_t) (start_page + 4096);
-	start_page += sizeof(vmm); // Puts us at the first vm_obj
+	rbnode_t *current = cvmm->root;
+	length = BYTE_PGROUNDUP((uint32_t) length);
 	
-	uint32_t potential = current_vmm->vm_obj_store_addr;
-
-	if (potential < end_page) { // Alloc as far as you can before you start searching.
-		current_vmm->vm_obj_store_addr += sizeof(vm_obj);
-		logf("Allocated vm space at %x\n", potential);
-		return (void*)potential;
-	}
-	uint32_t found = 0;
-	while (start_page < end_page) {
-		vm_obj* candidate = (vm_obj*) start_page;
-		
-		if (!(candidate->base & 1)) {
-			found = (uint32_t) candidate;
-			current_vmm->vm_obj_store_addr = found + sizeof(vm_obj);
-			break;
-		}
-
-		start_page += sizeof(vm_obj);
-	}
-	
-	if (!found)
-		panic("Out of VMM storage space!");
-	return (void*)found;
-}
-
-void* page_kalloc(size_t length, size_t flags, uint32_t phys)
-{
-	uint32_t vm_obj_flag_bits = ~1;
-	vm_obj* current = current_vmm->head_vm_obj;
-	vm_obj* prev = NULL;
-
-	length = BYTE_PGROUNDUP((uint32_t)length); 
-	uint32_t found = 0;
-
-	if (length > (current_vmm->high - current_vmm->low)){
-		logf("No thanks! VMM_HIGH: %x, VMM_LOW: %x\n", current_vmm->high, current_vmm->low);
-		return 0;
-	}
-	if (current == NULL) {
-		found = current_vmm->low;
-		vm_obj* latest = (vm_obj*) alloc_vm_obj();
-
-		latest->base = found | 1;
-		latest->length = length;
-		latest->flags = flags;
-		latest->next = NULL;
-		current_vmm->head_vm_obj = latest;
-
-		goto map_pages;
-	}
-
-	while (current != NULL) {
-		if (current == NULL)
-			break;
-		
-		uint32_t base_comp = (prev == NULL ? current_vmm->high : prev->base & vm_obj_flag_bits);
-		uint32_t candidate = (current->base & vm_obj_flag_bits) + current->length;
-		if (candidate + length <= base_comp){
-			found = candidate;
-			break;
-		}
-
-		prev = current;
-		current = current->next;
-	}
-	
-	if (current == NULL) {
-		if (current_vmm->low + length <= (prev->base & vm_obj_flag_bits)) {
-			found = current_vmm->low;
-		}
-	}
-
-	if (!found) {
-		logf("No space!\n");
+	if (!current) {
+		logf("Page not allocated. No free list\n");
 		return NULL;
 	}
 
-	vm_obj* new_vmm_obj = (vm_obj*) alloc_vm_obj();
+	// We will find the BEST not first.
+	
+	rbnode_t *best = 0;
+	
+	while (current) {
+		logf("Current %x\n", current);
+		if (current->size == length) {
+			best = current;
+			break; // Found size
+		}
 
-	new_vmm_obj->base = found | 1;
-	new_vmm_obj->length = length;
-	new_vmm_obj->flags = flags;
-	new_vmm_obj->next = current;
-	if (prev) 
-		prev->next = new_vmm_obj;
-	else
-		current_vmm->head_vm_obj = new_vmm_obj;
+		if (current->size <= length) {
+			current = current->right;
+		} else {
+			best = current;
+			current = current->left;
+		}
+	}
 
-map_pages:
+	if (!best) {
+		logf("No free memory found.\n");
+		return NULL;
+	}
+
+	if (best->size > length) {
+		// Resizing operation
+	logf("Freed page with meon\n");
+		make_node(cvmm, best->base + length, best->size - length, 0); // 0 is id. Debug feature
+	}
+
+	uint32_t base = best->base;
+	
+	delete_node(cvmm, &(kernel_vmm->root), best);
+
 	if (!phys) {
 		for (int i = 0; i < length; i += 4096) {
-			memory_map(current_vmm->root_pd, alloc_phys_page(), (uint32_t*) (found + i), flags);
+			memory_map(cvmm->root_pd, alloc_phys_page(), (uint32_t*) (base + i), flags);
 		}
 	} else {
 		for (int i = 0; i < length; i += 4096) { // Caller responsibility to keep track of phys frames here
-			memory_map(current_vmm->root_pd, (uint32_t*) ((phys & ~0xFFF) + i), (uint32_t*) (found + i), flags);
+			memory_map(cvmm->root_pd, (uint32_t*) ((phys & ~0xFFF) + i), (uint32_t*) (base + i), flags);
 		}
 	}
 	logf("Mapped phys is %x\n", phys);
-	return (void*) (found + (phys & 0xFFF));
+	return (void*) (base + (phys & 0xFFF));
 }
 
-void page_free(void* addr) {
-	vm_obj* current = current_vmm->head_vm_obj;
-	vm_obj* prev = NULL;
-	logf("--------------FREED---------------\n\n\n");
-	while (current != NULL) {
-		if (current == NULL) 
-			break;
-		if ((void*)(current->base & ~1) == addr)
-			break;
-			
-		prev = current;
-		current = current->next;
-	}
+void vmm_page_free(vmm *cvmm, void* addr) {
 
-	if (current == NULL) {
-		logf("No vm obj found at base %x\n", addr);
-		return;
-	}
-	if (prev)
-		prev->next = current->next;
-	else 
-		current_vmm->head_vm_obj = current->next;
+	uint32_t *pd = cvmm->root_pd;
 	
-	for (int i = 0; i < current->length; i+=4096) {
-		memory_unmap(current_vmm->root_pd, (uint32_t*)(addr + i));
-	}
-	memset(current, 0, sizeof(vm_obj));
+	uint32_t *page_table = (uint32_t *) pd[(uint32_t) addr >> 22];
+
+
+	if (!page_table)
+		return;
+
+	uint32_t page = page_table[((uint32_t) addr >> 12) & ~0x3FF];
+	if (!(page & 1)) 
+		return;
+		
+	make_node(cvmm, (uint32_t) addr, 4096, 0); 	
+	memory_unmap(cvmm->root_pd, (uint32_t*)(addr));
+}
+
+
+void init_user_memory()
+{
+	void *store = page_kalloc(4096, 0x3, 0); // 1 page present writeable and phys doesnt matter.
+	
+	//user_vmm = create_vmm(current_vmm->root_pd, 0x100000, 0xC0000000, store);
+}
+
+void *alloc_stack(vmm *process_vmm)
+{
+	// We will allocate 1 page per process for the stack
+	current_vmm = process_vmm;
+
+	void *stack_top = page_alloc(0x1000, 0x7, 0);	// USER PAGE EXPERIMENT!
+
+	return stack_top + 0xFFF;
 }

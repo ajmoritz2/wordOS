@@ -53,13 +53,23 @@ _start:
 	movl $(boot_page_table1 - 0xC0000000), %edi # Here we are just placing values into registers to properly map
 	# ^ is the phys addr of the boot page table
 	movl $0, %esi
-	movl $2048, %ecx # Mapping 1024 pages
+	movl $1024, %ecx # Mapping 1024 pages
 
 1:
 	cmpl $_kernel_start, %esi # Doing esi (0) - _kernel_start (0x00100000)
 	jl 2f			  # If esi - _kernel_start < 0 jmp 2
+
+	movl %ebx, %eax
+	cmpl $(_kernel_end), %eax # Quick little if to make sure we definetly map the multiboot header at least for size!
+	jl greater
+less:
+	cmpl %eax, %esi
+	jge 3f
+	jmp end_if
+greater:
 	cmpl $(_kernel_end - 0xC0000000), %esi
 	jge 3f 			  # If esi - _kernel_end (Physical addr) >= 0 jmp 3	
+end_if:
 
 	# Map address as "P and R/W".
 	
@@ -80,6 +90,7 @@ _start:
 	movl $(boot_page_table1 - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 0
 	movl $(boot_page_table1 - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 768 * 4
 
+	#movl $(boot_page_table2 - 0xC0000000 + 0x003), boot_page_directory - 0xC0000000 + 769 * 4
 	# The 768 is the 0xC0000000/0x400000 because each pde is 4 MiB and the 4 is bytes in 32-bit int.
 
 	# Set cr3 to the address of the boot_page_directory.

@@ -178,6 +178,7 @@ void init_apic()
 
 	init_ioapic();
 	calibrate_timer();
+
 }
 
 // Calibration

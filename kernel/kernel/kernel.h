@@ -27,6 +27,8 @@ extern uint32_t _kernel_end;
 
 extern uint8_t task_state;
 
+extern void load_directory(uint32_t *page_dir);
+
 void panic(char* reason);
 unsigned char inportb(int portnum);
 void outportb(int portnum, unsigned char data);

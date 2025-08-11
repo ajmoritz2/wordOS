@@ -57,11 +57,9 @@ uint32_t* create_new_pt(uint32_t* root_pd, uint32_t pd_index)
 	
 	log_to_serial("CREATING NEW PT\n");
 	
-	uint32_t* page_table = (uint32_t*) VIRTADDR((uint32_t)root_pd[1023]);
+	uint32_t* page_table = (uint32_t*) root_pd;
 
 	uint32_t* new_pt = (uint32_t *) alloc_phys_page();
-
-	page_table[pd_index] = (uint32_t) new_pt | 3;
 
 	root_pd[pd_index] = (uint32_t) new_pt | 3;
 	
@@ -81,6 +79,17 @@ void copy_kernel_map(uint32_t* new_kpd)
 	
 }
 
+void copy_higher_half_kernel_pd(void *pd)
+{
+	//memcpy(pd + (768 * sizeof(uint32_t)), kernel_pd + (768 * sizeof(uint32_t)), 1024); // Copy the last mibibyte of the page dir
+	memcpy(pd, kernel_pd, 4096); // Copy the last mibibyte of the page dir
+}
+
+void copy_kernel_pd_index(void *pd, int index)
+{	
+	uint32_t *pd_int = (uint32_t *) pd;	
+	pd_int[index] = kernel_pd[index];
+}
 
 void newinit_pd(uint32_t* pd)
 {

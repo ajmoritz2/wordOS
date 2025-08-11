@@ -4,6 +4,7 @@
 #include "idt.h"
 #include "gdt.h"
 #include "kernel.h"
+#include "scheduler.h"
 #include "../memory/string.h"
 #include "../memory/pmm.h"
 #include "../memory/paging.h"
@@ -165,6 +166,11 @@ void panic(char* reason) {
 					hlt");
 }
 
+void test_func()
+{
+	logf("Test func ran bruh\n");
+}
+
 void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc) 
 {
 
@@ -189,14 +195,15 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	gdt_install();
 	init_idt();
 	uint32_t kalloc_bottom = kinit((uint32_t *) (multiboot_loc + *tag_size)); // Bandaid fix done here. Will bite me in the ass later...
-	vmm* kvmm = create_vmm(kpd, 0xCC000000, 0xFFE00000);
+	vmm* kvmm = create_vmm(kpd, 0xCC000000, 0xFFE00000, 0);
+	set_kernel_vmm(kvmm);
 	set_current_vmm(kvmm);
 
 	logf("PSF START: %x\n", *&_binary_font_psf_start);
 	struct multiboot_tag_pointers tags = init_multiboot(multiboot_loc + 0xC0000000); // Must call before init_apic to properly parse. Must also be done after paging
 	
 	transfer_dynamic();
-	vmm_transfer_dynamic(kpd);
+	vmm_transfer_dynamic(&kvmm, kpd);
 	// Do everything you want with the multiboot tags before this point. Past here it will be overwritten.	
 	init_apic(kvmm);
 	init_framebuffer();
@@ -213,7 +220,12 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	printf("Basic kernel function %t30OK!%t10\n");
 
 	printf("Starting terminal...\n");
+	//init_user_memory();
+	//alloc_stack();
+	set_initial_lapic_timer_count(0xff00000); // Quantum of time for scheduling
 	start_terminal();
+	process_t *new_process = create_process("Test", &test_func, 0, 1);
+	logf("Here\n");
 	while (1) {
 		terminal_loop();
 

@@ -24,6 +24,7 @@ isr_stub_\num:
 .type irq_stub_\num, @function
 irq_stub_\num:
 	cli
+	pushl $10
 	pushl $\num
 	jmp irq_frame
 .endm
@@ -42,6 +43,7 @@ isr_frame_as:
 	pushl %eax
 	movl %cr3, %eax
 	pushl %eax 
+
 
 	call isr_handler
 	
@@ -63,8 +65,40 @@ isr_frame_as:
 	iret
 
 irq_frame:
+	pushl %eax
+	pushl %ebx
+	pushl %ecx
+	pushl %edx
+	pushl %esi
+	pushl %edi
+
+	movl %cr0, %eax
+	pushl %eax
+	movl %cr2, %eax
+	pushl %eax
+	movl %cr3, %eax
+	pushl %eax 
+
+
+	pushl %esp # different because we are 32 bit i guess, so its all just pushed onto the stack
 	call irq_handler
-	addl $4, %esp 
+
+	movl %eax, %esp # Put the stack pointer to the new context?
+	
+	popl %eax
+	movl %eax, %cr3
+	popl %eax
+	movl %eax, %cr2
+	popl %eax
+	movl %eax, %cr0
+
+	popl %edi
+	popl %esi
+	popl %edx
+	popl %ecx
+	popl %ebx
+	popl %eax
+	addl $8, %esp 
 	sti
 	iret
 

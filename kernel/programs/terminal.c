@@ -403,6 +403,7 @@ void parse_user_chars()
 
 key_event next_keycode()
 {
+
 	if (key_buffer_tail == key_buffer_pos) {
 		key_event nuller = {KEY_NULL, 0};
 		return nuller;

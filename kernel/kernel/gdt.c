@@ -25,10 +25,10 @@ void gdt_install(void)
 	gp.base = (uint32_t)&desc;
 
 	gdt_set_gate(0, 0, 0, 0, 0);
-	gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);
-	gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF);
-	gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF);
-	gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF);
+	gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); //KERNEL CS 0x08
+	gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); // KERNEL DS 0x10
+	gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); // USER CS 0x18
+	gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); // USER DS 0x20
 
 	flush_gdt((uint32_t)&gp);
 }

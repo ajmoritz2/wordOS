@@ -72,9 +72,26 @@ void init_idt()
 	asm volatile ("sti"); // Interupt flag
 }
 
+void stack_trace()
+{
+	uint32_t *ebp = 0;
+	asm volatile("mov %%ebp, %0" : "=r" (ebp)); 
+
+	int func_num = 0;
+
+	while (ebp) {
+		
+		logf("Function (%d) at: %x\n", func_num++, *(ebp + 1));
+
+		ebp = (uint32_t *) (*ebp);
+	}
+}
+
 uint8_t exc_print(struct isr_frame *frame)
 {
-	logf("IP: %x\n", frame->eip);
+	logf("EAX: %x, EBX: %x, ECX: %x, \nEDX: %x, EDI: %x, ESI: %x, \nCR3: %x, CR2: %x, CR0: %x, \nEIP: %x, CS: %x, EFLAGS: %x\n", \
+				frame->eax, frame->ebx, frame->ecx, frame->edx, frame->edi, frame->esi, frame->cr3, frame->cr2, \
+	   			frame->cr0, frame->eip, frame->cs, frame->eflags);	   
 	uint32_t code = 1;
 	switch (frame->isr_no) {
 		case 0x00:
@@ -87,9 +104,17 @@ uint8_t exc_print(struct isr_frame *frame)
 			logf("Err code: %x ", frame->isr_err);
 			log_to_serial("Double fault in kernel space!\n");
 			break;
+		case 26:
+			logf("You mess with the instruction pointer you MESS WITH ME!\n");
+			code = 1;
+			break;
 		case 0x0E:
+			stack_trace();
 			code = handle_exception(frame);
 			break;
+		case 27:
+			logf("Interupt of 0x27 detected\n");
+			stack_trace();
 		default:
 			logf("Stack at %x, Interrupt occured: %d", frame->isr_err, frame->isr_no);
 			log_to_serial("\n");
@@ -99,9 +124,13 @@ uint8_t exc_print(struct isr_frame *frame)
 	return code;
 }
 
-void irq_handler(int num) {
+cpu_status_t* irq_handler(cpu_status_t* status) {
+	cpu_status_t* ret_stat = status;
+//	logf("Status: %x\n", status->cr3);
+	int num = status->isr_no;
 	switch (num) {
 	case 0x30: // LAPIC Timer
+		//status = schedule();
 		break;
 	case 0x31: // PIT timer
 		end_calibration();
@@ -113,6 +142,10 @@ void irq_handler(int num) {
 		break;
 	}
 	send_EOI(glob_lapic_addr); // THEY WILL QUEUE UP IF THIS ISN'T HERE!
+							   //
+	//status->eip = (uint32_t)&isr_stub_26; // EXECUTE ORDER 66
+							   
+	return status;
 }
 
 void isr_handler(struct isr_frame frame)
@@ -122,7 +155,8 @@ void isr_handler(struct isr_frame frame)
 			return;
 		}
 	}
-	logf("Silly interrupt happened I guess!\n");
+
+	//logf("Silly interrupt happened I guess!\n");
 	asm volatile("cli\n\
 			hlt");
 }

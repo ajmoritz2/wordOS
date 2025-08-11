@@ -6,7 +6,7 @@
 #define SHIFT_MASK		4
 #define RELEASE_MASK	8
 
-#define MAX_KEY_BUFFER_SIZE	255
+#define MAX_KEY_BUFFER_SIZE	20
 
 extern uint8_t key_buffer_pos;
 

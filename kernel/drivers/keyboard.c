@@ -81,9 +81,9 @@ void handle_keychange()
 			break;
 	}
 
-
 	key_buffer_pos = (key_buffer_pos + 1) % MAX_KEY_BUFFER_SIZE;
 	key_buffer[key_buffer_pos].code = key_lookup[key_codes[bytes_in] % 0x80];
+	key_buffer[key_buffer_pos].masks = 0; 
 	
 	if (key_codes[bytes_in] > 0x80) {
 		key_buffer[key_buffer_pos].masks |= RELEASE_MASK;	
