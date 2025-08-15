@@ -41,6 +41,7 @@ vmm* create_vmm(uint32_t* root_pd, uint32_t low, uint32_t high, void *store_page
 	memset((void*)store_page, 0, 4096);
 	vmm *new_vmm = (vmm*)store_page;
 	new_vmm->root_pd = (uint32_t*)root_pd;
+	
 	new_vmm->root = NULL;
 	new_vmm->vm_obj_store_addr = (uintptr_t) (store_page + sizeof(vmm));
 	logf("Low addr marked at %x. High marked at %x\n\n", BYTE_PGROUNDUP(low), high);
@@ -139,7 +140,6 @@ void* vmm_page_alloc(vmm *cvmm, size_t length, size_t flags, uint32_t phys)
 
 	if (best->size > length) {
 		// Resizing operation
-	logf("Freed page with meon\n");
 		make_node(cvmm, best->base + length, best->size - length, 0); // 0 is id. Debug feature
 	}
 
@@ -164,7 +164,7 @@ void vmm_page_free(vmm *cvmm, void* addr) {
 
 	uint32_t *pd = cvmm->root_pd;
 	
-	uint32_t *page_table = (uint32_t *) pd[(uint32_t) addr >> 22];
+	uint32_t *page_table = (uint32_t *) (pd[((uint32_t) addr >> 22)] & ~0x3FF) ;
 
 
 	if (!page_table)
@@ -191,7 +191,7 @@ void *alloc_stack(vmm *process_vmm)
 	// We will allocate 1 page per process for the stack
 	current_vmm = process_vmm;
 
-	void *stack_top = page_alloc(0x1000, 0x7, 0);	// USER PAGE EXPERIMENT!
+	void *stack_top = page_alloc(0x1000, 0x3, 0);	// USER PAGE EXPERIMENT!
 
 	return stack_top + 0xFFF;
 }

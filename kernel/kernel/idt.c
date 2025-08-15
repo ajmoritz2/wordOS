@@ -7,6 +7,7 @@
 #include "../drivers/apic.h"
 #include "../drivers/framebuffer.h"
 #include "../drivers/keyboard.h"
+#include "scheduler.h"
 
 extern uint32_t* glob_lapic_addr;
 
@@ -95,10 +96,10 @@ uint8_t exc_print(struct isr_frame *frame)
 	uint32_t code = 1;
 	switch (frame->isr_no) {
 		case 0x00:
-			log_to_serial("Division by zero in kernel space!\n");
+			logf("Division by zero in kernel space!\n");
 			break;
 		case 0x06:
-			log_to_serial("Invalid opcode in kernel space!\n");
+			logf("Invalid opcode in kernel space!\n");
 			break;
 		case 0x0D:
 			logf("Err code: %x ", frame->isr_err);
@@ -120,6 +121,7 @@ uint8_t exc_print(struct isr_frame *frame)
 			log_to_serial("\n");
 			break;
 	}
+	logf("\n");
 
 	return code;
 }
@@ -130,7 +132,7 @@ cpu_status_t* irq_handler(cpu_status_t* status) {
 	int num = status->isr_no;
 	switch (num) {
 	case 0x30: // LAPIC Timer
-		//status = schedule();
+		status = handle_schedule(status);
 		break;
 	case 0x31: // PIT timer
 		end_calibration();

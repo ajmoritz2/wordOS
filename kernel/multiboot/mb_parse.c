@@ -48,6 +48,7 @@ void init_framebuffer() {
 	uint32_t num_pages = (fb->common.framebuffer_pitch * fb->common.framebuffer_height);
 
 	logf("Type of FrameBuffer: %d\n", fb->common.framebuffer_type);
+	logf("FB_ADDR: %x\n", fb_addr);
 
 	// Mapping framebuffer
 	fb_virt_addr = (uint32_t*) page_kalloc(num_pages, 0x3, (uint32_t) fb_addr);

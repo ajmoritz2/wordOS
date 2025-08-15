@@ -11,6 +11,7 @@
 typedef enum {
 	READY,
 	RUNNING,
+	IDLE,
 	DEAD
 } process_status_t;
 
@@ -27,5 +28,8 @@ process_t *create_process(char *name, void(*function)(void), void *arg, int priv
 void add_process(process_t *process);
 void delete_process(process_t *process);
 process_t *get_next_process();
+cpu_status_t *handle_schedule(cpu_status_t *context);
+void kill_current_process();
+void init_scheduler();
 
 #endif

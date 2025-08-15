@@ -7,29 +7,62 @@
 #include <stdint.h>
 #include "scheduler.h"
 
+#define PRIV_NO_ADD		2
+
 process_t *process_list_head;
-process_t *current_process;
+static process_t *current_process;
+process_t *idle_process;
+
+int initialized = 0;
 
 size_t next_free_pid = 0;
 
+void run_idle()
+{
+	while (1)
+		asm("hlt");
+}
+
+void init_idle_process()
+{
+	idle_process = create_process("idle", &run_idle, 0, PRIV_NO_ADD);	
+}
+
+void init_scheduler()
+{
+	process_list_head = NULL;
+	current_process = NULL;
+	init_idle_process();
+	initialized = 1;
+}
+
 void add_process(process_t *process)
 {
+	logf("Adding process %x to the list with next %x.\n", process, process->next);
 	process_t *current = process_list_head;
+
+	logf("Must cut o\n");
+	logf("Cutoff=------------------------ PID: %x\n", process->pid);
+	if (!current) {
+		process_list_head = process;
+	logf ("Current next %x\n", process_list_head->next);
+		return;
+	}
 	while (current->next) {
 		current = current->next; 
 	}
 	
-
 	current->next = process;
 }
 
 void delete_process(process_t *process)
 {
 	if (process_list_head == process) {
+		
 		process_t *next = process_list_head->next;
-		kfree(process_list_head);
 		process_list_head = next;
-		// Edge case (probably)
+		kfree(process);
+		return;
 	}
 	process_t *prev_process = process_list_head;
 
@@ -51,92 +84,132 @@ process_t *get_next_process()
 	return current_process->next;
 }
 
-void run_idle()
-{
-	while (1)
-		asm("hlt");
-}
-
 void configure_page_directory(process_t *process)
 {
 	// I need to grab the root_pd first and then swap it out
-	void *pd_phys_addr = alloc_phys_page(); // Our directory! ayyy
-	void *pd_virt_addr = page_kalloc(1024, 0x3, (uint32_t) pd_phys_addr);
+	uint32_t *phys_pd = alloc_phys_page();
+	uint32_t *vmm_store_phys = alloc_phys_page();
 
-	void *vmm_store_phys = alloc_phys_page();
-	void *vmm_store_addr = page_kalloc(1024, 0x3, (uint32_t) vmm_store_phys); // TODO: Make these concurrent (is that the right word?)
+	uint32_t *vmm_kspace = page_kalloc(4096, 0x3, (uint32_t) vmm_store_phys);
+	uint32_t *pd_kspace = page_kalloc(4096, 0x3, (uint32_t) phys_pd);
 	
-	int pd_index_to_copy = (uint32_t) pd_virt_addr >> 22; // We can just copy the page directory because awesome!
-	int vmm_index = (uint32_t) vmm_store_addr >> 22;
-
-	// It is possible for them not to be the samme (stupid programs!)
-	
-	vmm *new_vmm = create_vmm(pd_virt_addr, 0x10000, 0xC0000000, vmm_store_addr);
-
-	set_current_vmm(new_vmm);
-
-	logf("Babyloni--------------------------------- New_vmm locetion: %x\n", new_vmm->root);
-	void *process_pd_virt = page_alloc(4096, 0x3, (uint32_t) pd_phys_addr);
-	void *process_vmm_virt = page_alloc(4096, 0x3, (uint32_t) vmm_store_phys);
-
-	copy_higher_half_kernel_pd(pd_virt_addr);	
-	logf("PD Index for pd_index: %d\n", pd_index_to_copy);
-
-	((uint32_t* )pd_virt_addr)[1023] = (uint32_t) pd_phys_addr | 3;
+	vmm *new_vmm = create_vmm(pd_kspace, 0x10000, 0xc0000000, vmm_kspace);
 
 	process->vmm_obj = new_vmm;
+
+	copy_higher_half_kernel_pd(pd_kspace);
+
+	pd_kspace[1023] = (uint32_t) phys_pd | 3; // Recursive paging
+
+	set_current_vmm(new_vmm);
+	load_directory(phys_pd);
+
+	uint32_t *vmm_pspace = page_alloc(4096, 0x3, (uint32_t) vmm_store_phys);
+	uint32_t *pd_pspace = page_alloc(4096, 0x3, (uint32_t) phys_pd);
+
+	new_vmm->root_pd = pd_pspace;
+	uint32_t root_offset = (uint32_t) new_vmm->root - (uint32_t) new_vmm->vm_obj_store_addr; 
+	new_vmm->vm_obj_store_addr = (uint32_t) vmm_pspace + sizeof(vmm);
+	
+	// Set the root node 28 offset
+	new_vmm->root = (void *) (uint32_t) new_vmm->vm_obj_store_addr + root_offset;
+
+	process->context->esp = (uint32_t) alloc_stack(new_vmm) - 100;
+
+	process->context->cr3 = (uint32_t) phys_pd;
+	process->context->ebx = 0xbeef;
+}
+
+void kill_current_process()
+{
+	current_process->status = DEAD;
+	logf("Process Killed hahahha %x\n", current_process);
+	current_process->next = 0;
+	while (1)
+		asm volatile ("hlt");
 }
 
 process_t *create_process(char *name, void(*function)(void), void *arg, int privileged) 
 {
 	asm volatile ("cli");
 	process_t *process = kalloc(sizeof(process_t));
-
-	configure_page_directory(process);
-	logf("Page directory: %x\n", process->vmm_obj->root_pd[1023] & ~0x3);
+	logf("Process created at %x\n", process);
+	memset(process, sizeof(process), 0);
 
 	strncpy(process->name, name, P_NAME_MAX_LEN);
 	process->pid = next_free_pid++;
+	logf("Process pid %d\n", process->pid);
 	process->status = READY;
 	
-	// Allocate new context
+		// Allocate new context
 	process->context = kalloc(sizeof(cpu_status_t));
-	process->context->ss = 0x10; // KERNEL_DS
+	memset(process->context, sizeof(cpu_status_t), 0);
 	
-
-	// Create new page directory
-
-	process->context->esp = (uint32_t) alloc_stack(process->vmm_obj);
+	configure_page_directory(process);
+//	process->context->ss = 0x10; // KERNEL_DS
+	
 	process->context->eflags = 0x202;
 	process->context->cs = 0x08;
 	process->context->eip = (uint32_t)function;
-//	process->context->ebp = 0;
+	process->next = NULL;
+	uint32_t init_cr0 = 0;
+	asm ("mov %%cr0, %0" : "=r" (init_cr0));
+	process->context->cr0 = init_cr0;
 
-//	add_process(process);
+	if (privileged != PRIV_NO_ADD) {
+		add_process(process);
+	}
+
 
 	asm volatile ("sti");
 
 	return process;
 }
 
+
 cpu_status_t *schedule(cpu_status_t *context)
 {
-	current_process->context = context;
-	current_process->status = READY;
-	while (1) {
-		if (current_process->next != NULL) {
-			current_process = current_process->next;
-		} else {
-			current_process = process_list_head;
-		}	
+	if (current_process) {
+		current_process->context = context;
+	}
+		
+	while (current_process) {
 
-		if (current_process != NULL && current_process->status == DEAD) {
+		if (current_process->status == READY)
+			break;
+		
+		if (current_process->status == DEAD) {
 			delete_process(current_process);
 		} else {
 			current_process->status = READY;
-			break;
+		}
+		// If the process is IDLE it will come to here and continue to next process.
+		current_process = current_process->next;
+	}
+
+	if (!current_process) {
+		if (process_list_head) {
+			current_process = process_list_head;
+		} else {
+			logf("IDLE TASK SCHEDULED\n");
+			current_process = idle_process;
 		}
 	}
 
+	current_process->status = RUNNING;
+
+	logf("Process %d scheduled\n", current_process->pid);
+
 	return current_process->context;
+}
+
+cpu_status_t *handle_schedule(cpu_status_t *context)
+{
+	if (!initialized) {
+		logf("Context returnsed\n");
+		return context;
+	}
+	cpu_status_t *to_ret = schedule(context);
+
+	return to_ret;
 }

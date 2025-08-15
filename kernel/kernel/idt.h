@@ -22,6 +22,7 @@ typedef struct isr_frame {
 	uint32_t cr2;
 	uint32_t cr0;
 	
+	uint32_t esp;
 	uint32_t edi;
 	uint32_t esi;
 	uint32_t edx;
@@ -35,8 +36,6 @@ typedef struct isr_frame {
 	uint32_t eip;
 	uint32_t cs;
 	uint32_t eflags;	
-	uint32_t esp;
-	uint32_t ss;
 } __attribute__((packed)) cpu_status_t;
 
 extern void isr_stub_0(void);

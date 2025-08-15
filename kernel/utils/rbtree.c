@@ -29,7 +29,6 @@ void free_node_obj(void *base, struct vmm *cvmm)
 		return;
 	}
 
-	logf("Freed %x\n", base);
 	obj->flags &= ~2;
 	obj->base = 0;
 }
@@ -92,9 +91,7 @@ void insert_violations(rbnode_t **root, rbnode_t *node)
 	}
 	if (node->parent->color == BLACK)
 		return;
-	logf("Node size %x Node Address %x\n", node->size, node->base);
 	rbnode_t *uncle = node->parent->parent->left;
-
 	if (node->parent->parent->left == node->parent) {
 		uncle = node->parent->parent->right;
 	}
@@ -145,13 +142,14 @@ void insert_node(rbnode_t **root, rbnode_t *node)
 {
 	// Start with BST insertion
 	//
-	logf("Node inserted at base %x\n", node->base);
 	
 	if (*root == NULL)
 		return;
 	
 	rbnode_t *cur = *root;
 	rbnode_t *prev = NULL;
+
+	(*root)->color = BLACK;
 
 	uint8_t dir = 0;
 
@@ -175,11 +173,11 @@ void insert_node(rbnode_t **root, rbnode_t *node)
 		prev->left = node;
 	node->parent = prev;
 	node->color = RED;
-	logf("Node parent color %d\n", node->parent->parent);
 
 	if (node->parent->color != BLACK) {
 		insert_violations(root, node);	
 	}
+
 }
 
 void delete_violations(rbnode_t **root, rbnode_t *node)

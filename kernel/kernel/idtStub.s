@@ -42,7 +42,6 @@ isr_frame_as:
 	movl %cr2, %eax
 	pushl %eax
 	movl %cr3, %eax
-	pushl %eax 
 
 
 	call isr_handler
@@ -71,6 +70,9 @@ irq_frame:
 	pushl %edx
 	pushl %esi
 	pushl %edi
+	movl %esp, %eax
+	addl $0x2c, %eax
+	pushl %eax 	#Reset ESP
 
 	movl %cr0, %eax
 	pushl %eax
@@ -82,23 +84,26 @@ irq_frame:
 
 	pushl %esp # different because we are 32 bit i guess, so its all just pushed onto the stack
 	call irq_handler
+	movl (%eax), %ebx
+	movl %ebx, %cr3
 
-	movl %eax, %esp # Put the stack pointer to the new context?
+	movl 0xc(%eax), %esp
 	
-	popl %eax
-	movl %eax, %cr3
-	popl %eax
-	movl %eax, %cr2
-	popl %eax
-	movl %eax, %cr0
+	pushl 0x38(%eax) # EFLAGS 
+	pushl 0x34(%eax) # CS
+	pushl 0x30(%eax) # EIP
+	pushl 0x24(%eax) # eax
+	movl 0x4(%eax), %ebx
+	movl %ebx, %cr2
+	movl 0x8(%eax), %ebx
+	movl %ebx, %cr0
 
-	popl %edi
-	popl %esi
-	popl %edx
-	popl %ecx
-	popl %ebx
+	movl 0x10(%eax), %edi	
+	movl 0x14(%eax), %esi	
+	movl 0x18(%eax), %edx	
+	movl 0x1c(%eax), %ecx	
+	movl 0x20(%eax), %ebx	
 	popl %eax
-	addl $8, %esp 
 	sti
 	iret
 

@@ -143,9 +143,10 @@ uint32_t lapic_read_reg(uint32_t reg)
 
 void lapic_timer_init()
 {
+	// Real init is done in calibration ig
 	volatile uint32_t* lvt_reg = (uint32_t*) ((uint32_t) glob_lapic_addr + 0x320);
 
-	*lvt_reg = 0x30 | 1 << 17; // Just setting up the vector for the time
+	*lvt_reg = 0x30 | 1 << 16; // Just setting up the vector for the time
 }
 
 void set_initial_lapic_timer_count(uint32_t count)

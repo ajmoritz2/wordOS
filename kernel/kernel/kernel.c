@@ -169,6 +169,7 @@ void panic(char* reason) {
 void test_func()
 {
 	logf("Test func ran bruh\n");
+	kill_current_process();
 }
 
 void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc) 
@@ -222,10 +223,11 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	printf("Starting terminal...\n");
 	//init_user_memory();
 	//alloc_stack();
-	set_initial_lapic_timer_count(0xff00000); // Quantum of time for scheduling
+	set_initial_lapic_timer_count(0); // Disable timer for now 
 	start_terminal();
+	init_scheduler();
 	process_t *new_process = create_process("Test", &test_func, 0, 1);
-	logf("Here\n");
+	set_initial_lapic_timer_count(0xff00000); // Quantum of time for scheduling
 	while (1) {
 		terminal_loop();
 

@@ -43,13 +43,14 @@ void memory_unmap(uint32_t* root_pd, uint32_t* virt) {
 	if (root_pd[pd_index] == 0) {
 		return;
 	}
-	if ((uint32_t)virt & 0x3FF) { log_to_serial("PHYSICAL ADDRESS NOT PAGE ALIGNED\n"); return;}
+	if ((uint32_t)virt & 0x3FF) { logf("PHYSICAL ADDRESS %x NOT PAGE ALIGNED\n", virt); return;}
 	uint32_t phys = page_table[pt_index] & ~0xFFF;
 
 	clear_frame(physical_to_frame((uint32_t*)phys));
 	
 	page_table[pt_index] = 0;	
 }
+
 
 uint32_t* create_new_pt(uint32_t* root_pd, uint32_t pd_index)
 {
@@ -81,8 +82,8 @@ void copy_kernel_map(uint32_t* new_kpd)
 
 void copy_higher_half_kernel_pd(void *pd)
 {
-	//memcpy(pd + (768 * sizeof(uint32_t)), kernel_pd + (768 * sizeof(uint32_t)), 1024); // Copy the last mibibyte of the page dir
-	memcpy(pd, kernel_pd, 4096); // Copy the last mibibyte of the page dir
+	memcpy(pd + (768 * sizeof(uint32_t)), kernel_pd + 768, 1024); // Copy the last mibibyte of the page dir
+//	memcpy(pd, kernel_pd, 4096); // Copy the last mibibyte of the page dir
 }
 
 void copy_kernel_pd_index(void *pd, int index)
