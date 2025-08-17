@@ -1,5 +1,6 @@
 *.bin
 *.o
+!font.o
 *.log
 *.swp
 bochsout.txt
