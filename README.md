@@ -5,3 +5,8 @@ If your code is plagerized, please know I try to understand it before anything, 
 
 
 Any help that is given will be appreciated!
+
+
+To compile you just run the bab.sh command in bash.
+This will also start qemu with the correct options.
+I believe the ISO works as well, and the qemu command will work with that too.
