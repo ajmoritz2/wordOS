@@ -23,6 +23,12 @@ void run_idle()
 		asm("hlt");
 }
 
+void set_current_process_idle()
+{
+//	current_process->status = IDLE;
+	run_idle();
+}
+
 void init_idle_process()
 {
 	idle_process = create_process("idle", &run_idle, 0, PRIV_NO_ADD);	
@@ -42,10 +48,10 @@ void add_process(process_t *process)
 	process_t *current = process_list_head;
 
 	logf("Must cut o\n");
-	logf("Cutoff=------------------------ PID: %x\n", process->pid);
+	logf("Cutoff------------------------ PID: %x\n", process->pid);
+	logf("New process' Context stored at %x\n", process->context);
 	if (!current) {
 		process_list_head = process;
-	logf ("Current next %x\n", process_list_head->next);
 		return;
 	}
 	while (current->next) {
@@ -74,14 +80,15 @@ void delete_process(process_t *process)
 	}
 
 	prev_process->next = process->next; // Should be 0 if NULL
-	
+	logf("Process %d freed\n", process->pid);
+	logf("Process deleting context at %x\n", process->context);
+	kfree(process->context);	
 	kfree(process);
 }
 
-process_t *get_next_process()
+process_t *get_process_head()
 {
-	// ?
-	return current_process->next;
+	return process_list_head;
 }
 
 void configure_page_directory(process_t *process)
@@ -104,8 +111,13 @@ void configure_page_directory(process_t *process)
 	set_current_vmm(new_vmm);
 	load_directory(phys_pd);
 
+
 	uint32_t *vmm_pspace = page_alloc(4096, 0x3, (uint32_t) vmm_store_phys);
 	uint32_t *pd_pspace = page_alloc(4096, 0x3, (uint32_t) phys_pd);
+
+	if (!vmm_pspace || !pd_pspace) {
+		panic("No vmm_space or pd_space allocated for process!\n");
+	}
 
 	new_vmm->root_pd = pd_pspace;
 	uint32_t root_offset = (uint32_t) new_vmm->root - (uint32_t) new_vmm->vm_obj_store_addr; 
@@ -133,12 +145,13 @@ process_t *create_process(char *name, void(*function)(void), void *arg, int priv
 {
 	asm volatile ("cli");
 	process_t *process = kalloc(sizeof(process_t));
-	logf("Process created at %x\n", process);
+	logf("Creating process at %x\n", process);
 	memset(process, sizeof(process), 0);
 
+	logf("Process name: %s\n", name);
 	strncpy(process->name, name, P_NAME_MAX_LEN);
 	process->pid = next_free_pid++;
-	logf("Process pid %d\n", process->pid);
+	logf("Process pid: %d\n", process->pid);
 	process->status = READY;
 	
 		// Allocate new context
@@ -159,8 +172,9 @@ process_t *create_process(char *name, void(*function)(void), void *arg, int priv
 	if (privileged != PRIV_NO_ADD) {
 		add_process(process);
 	}
+	logf("Process context stored at %x\n", process->context);
 
-
+	load_directory((uint32_t *) (kernel_vmm->root_pd[1023] & ~0x3FF));
 	asm volatile ("sti");
 
 	return process;
@@ -170,7 +184,7 @@ process_t *create_process(char *name, void(*function)(void), void *arg, int priv
 cpu_status_t *schedule(cpu_status_t *context)
 {
 	if (current_process) {
-		current_process->context = context;
+		memcpy(current_process->context, context, sizeof(cpu_status_t));
 	}
 		
 	while (current_process) {
@@ -191,14 +205,12 @@ cpu_status_t *schedule(cpu_status_t *context)
 		if (process_list_head) {
 			current_process = process_list_head;
 		} else {
-			logf("IDLE TASK SCHEDULED\n");
 			current_process = idle_process;
 		}
 	}
 
 	current_process->status = RUNNING;
 
-	logf("Process %d scheduled\n", current_process->pid);
 
 	return current_process->context;
 }

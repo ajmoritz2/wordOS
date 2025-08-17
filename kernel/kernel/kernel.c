@@ -205,6 +205,8 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	
 	transfer_dynamic();
 	vmm_transfer_dynamic(&kvmm, kpd);
+	set_kernel_vmm(kvmm);
+	set_current_vmm(kvmm);
 	// Do everything you want with the multiboot tags before this point. Past here it will be overwritten.	
 	init_apic(kvmm);
 	init_framebuffer();
@@ -221,11 +223,9 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	printf("Basic kernel function %t30OK!%t10\n");
 
 	printf("Starting terminal...\n");
-	//init_user_memory();
-	//alloc_stack();
 	set_initial_lapic_timer_count(0); // Disable timer for now 
-	start_terminal();
 	init_scheduler();
+	start_terminal();
 	process_t *new_process = create_process("Test", &test_func, 0, 1);
 	set_initial_lapic_timer_count(0xff00000); // Quantum of time for scheduling
 	while (1) {

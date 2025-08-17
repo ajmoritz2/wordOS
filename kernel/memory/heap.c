@@ -50,6 +50,7 @@ void *kalloc(size_t size)
 			
 			cur_node->status = HEAP_USED;
 			cur_node->prev = past_node;
+			logf("Allocated heap node at %x with size %x\n", cur_node, cur_node->size);
 			return (void *) (cur_node + 1);
 		}
 		past_node = cur_node;
@@ -68,7 +69,7 @@ void *kalloc(size_t size)
 	void *return_addr = (void *) ((uint8_t *) cur_node + sizeof(struct mem_header));	
 
 	cur_heap_pos = (uintptr_t *) ((uint8_t *) cur_node + cur_node->size + sizeof(struct mem_header));
-	logf("CUR: %t30%x %t5aNODE PREV: %x%t10\n", cur_node, cur_node->prev);
+	logf("Allocated heap node at %x with size %x\n", return_addr, cur_node->size);
 	return return_addr;
 }
 
@@ -76,6 +77,7 @@ void kfree(void *mem)
 {
 	// Size does NOT include sizeof(struct mem_header)
 	struct mem_header *node = (struct mem_header *) (mem - sizeof(struct mem_header));
+	logf("MEMSETING %x\n", node->size);
 	memset(node + 1, 0, node->size);
 
 	node->status = HEAP_FREE;

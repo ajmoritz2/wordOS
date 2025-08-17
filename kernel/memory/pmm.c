@@ -135,7 +135,7 @@ uint32_t kinit(uint32_t* after_mb)
 
 	logf("KEND %x, after_mb %x, PREMEM: %x\n", &_kernel_end, (uint32_t) after_mb, pre_mem);
 	logf("NUM FRAMES %x\n", NUM_FRAMES);
-	num_frames = 4; // 10 MiB of pages
+	num_frames = NUM_FRAMES; // 10 MiB of pages
 	frames = pre_malloc(num_frames, 0);
 	memset(frames, 0, num_frames);
 	// Because I'm lazy and I hope they wont change,

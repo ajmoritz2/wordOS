@@ -6,6 +6,7 @@
  *
  */
 #include "../kernel/kernel.h"
+#include "../kernel/scheduler.h"
 #include "../drivers/framebuffer.h"
 #include "terminal.h"
 #include "../drivers/keyboard.h"
@@ -418,28 +419,33 @@ key_event next_keycode()
 void terminal_loop() 
 {
 
-	key_event event = next_keycode();
-	if (event.code == KEY_NULL) {
-		task_state = 0;
-		return;
-	}
-	task_state = 1;
-	char keysym = keycode_to_keysym(event);
-	if (event.masks & RELEASE_MASK) keysym = 0;
-	if (keysym) {
-		write_user_char(keysym);
-		if (keysym == '\n') {
-			write_text_buffer(user_chars);
-			parse_user_chars();
-			user_char_index = 2;
-			tflush();	
+	while (1) {
+		key_event event = next_keycode();
+		if (event.code == KEY_NULL) {
+			asm("hlt");
+			continue;
 		}
-		draw_user_chars();
+	
+		logf("Key pressed\n");
+		char keysym = keycode_to_keysym(event);
+		if (event.masks & RELEASE_MASK) keysym = 0;
+		if (keysym) {
+			write_user_char(keysym);
+			if (keysym == '\n') {
+				write_text_buffer(user_chars);
+				parse_user_chars();
+				user_char_index = 2;
+				tflush();	
+			}
+			draw_user_chars();
+		}
 	}
 }
 
 void start_terminal()
 {
+	process_t *term_process = create_process("Terminal", &terminal_loop, 0, 0);
+	logf("Created terminal process\n");
 	draw_user_chars();
 }
 

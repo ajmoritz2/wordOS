@@ -8,6 +8,7 @@
 
 #define P_NAME_MAX_LEN	64
 
+
 typedef enum {
 	READY,
 	RUNNING,
@@ -24,12 +25,15 @@ typedef struct process_t {
 	struct process_t* next;
 } process_t;
 
+extern process_t *idle_process;
+
 process_t *create_process(char *name, void(*function)(void), void *arg, int privileged);
 void add_process(process_t *process);
 void delete_process(process_t *process);
-process_t *get_next_process();
+process_t *get_process_head();
 cpu_status_t *handle_schedule(cpu_status_t *context);
 void kill_current_process();
+void set_current_process_idle();
 void init_scheduler();
 
 #endif

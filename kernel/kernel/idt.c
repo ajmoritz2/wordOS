@@ -133,6 +133,7 @@ cpu_status_t* irq_handler(cpu_status_t* status) {
 	switch (num) {
 	case 0x30: // LAPIC Timer
 		status = handle_schedule(status);
+		logf("Scheduling eip %x\n", status->eip);
 		break;
 	case 0x31: // PIT timer
 		end_calibration();

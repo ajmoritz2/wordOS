@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "../kernel/kernel.h"
+#include "../kernel/scheduler.h"
 #include "../memory/string.h"
 #include "../programs/terminal.h"
 #include "../utils/rbtree.h"
@@ -37,6 +38,9 @@ vmm* create_vmm(uint32_t* root_pd, uint32_t low, uint32_t high, void *store_page
 		memory_map(root_pd, alloc_phys_page(), (uint32_t*)TEMP_PAGE_VIRT, 0x3); 
 		store_page = (void*) TEMP_PAGE_VIRT;
 	}
+
+	// Interesting page error happening in here...
+	logf("Store page located at :%x\n", store_page);
 	
 	memset((void*)store_page, 0, 4096);
 	vmm *new_vmm = (vmm*)store_page;
@@ -56,12 +60,48 @@ vmm* create_vmm(uint32_t* root_pd, uint32_t low, uint32_t high, void *store_page
 
 void *page_kalloc(size_t length, size_t flags, uint32_t phys)
 {
-	return vmm_page_alloc(kernel_vmm, length, flags, phys);
+	void *page_to_ret = vmm_page_alloc(kernel_vmm, length, flags, phys);
+/*	process_t *current = get_process_head();
+	logf("Current process_head: %x\n", current);
+
+	while (current) {
+
+		uint32_t *table = (uint32_t *) TEMP_PAGE_VIRT;
+
+		memory_map(kernel_vmm->root_pd, (uint32_t *) current->context->cr3, table, 0x3); 
+
+		uint32_t pd_index = (uint32_t) page_to_ret >> 22;
+
+		uint32_t *pt_phys = (uint32_t *) table[pd_index]; 
+		logf("PT PHYS on pagekfree: %x\n", pt_phys);
+
+		memory_unmap(kernel_vmm->root_pd, table); 
+		current = current->next;
+	}*/
+
+	return page_to_ret;
 }
 
 void page_kfree(void *addr)
 {
 	vmm_page_free(kernel_vmm, addr);
+	
+/*	process_t *current = get_process_head();
+
+	while (current) {
+
+		uint32_t *table = (uint32_t *) TEMP_PAGE_VIRT;
+
+		memory_map(kernel_vmm->root_pd, (uint32_t *) current->context->cr3, table, 0x3); 
+
+		uint32_t pd_index = (uint32_t) addr >> 22;
+
+		uint32_t *pt_phys = (uint32_t *) table[pd_index]; 
+		logf("PT PHYS on pagekfree: %x\n", pt_phys);
+
+		memory_unmap(kernel_vmm->root_pd, table); 
+		current = current->next;
+	}*/
 }
 
 void *page_alloc(size_t length, size_t flags, uint32_t phys)
@@ -108,6 +148,8 @@ void* vmm_page_alloc(vmm *cvmm, size_t length, size_t flags, uint32_t phys)
 {
 	rbnode_t *current = cvmm->root;
 	length = BYTE_PGROUNDUP((uint32_t) length);
+
+	logf("Allocating page in vmm stored at location: %x\n", cvmm);
 	
 	if (!current) {
 		logf("Page not allocated. No free list\n");
@@ -119,7 +161,6 @@ void* vmm_page_alloc(vmm *cvmm, size_t length, size_t flags, uint32_t phys)
 	rbnode_t *best = 0;
 	
 	while (current) {
-		logf("Current %x\n", current);
 		if (current->size == length) {
 			best = current;
 			break; // Found size
