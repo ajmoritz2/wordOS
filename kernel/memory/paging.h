@@ -49,7 +49,7 @@ typedef struct {
 
 uint8_t handle_exception(struct isr_frame *frame);
 
-uint32_t* pg_init(uintptr_t *entry_pd, uint32_t tag_size);
+uint32_t* pg_init(uintptr_t *entry_pd, uint32_t *tag_size);
 
 void memory_map(uint32_t* root_pd, uint32_t* phys, uint32_t* virt, size_t flags);
 void memory_unmap(uint32_t*, uint32_t*);

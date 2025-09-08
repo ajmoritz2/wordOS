@@ -21,14 +21,12 @@ extern uint32_t* fb_virt_addr;
 struct ACPISDTHeader* rsdt_addr;
 
 struct multiboot_tag_framebuffer* fb;
-static uint32_t bypp;
+static uint32_t bypp = 0;
 struct multiboot_tag_old_acpi* old_acpi;
 
-void test1(){}
-void test2(){}
 
 // FRAMEBUFFER BALONEY TODO: Move to own file...
-uint32_t* get_pixel_addr (uint32_t x, uint32_t y)
+uint8_t* get_pixel_addr (uint32_t x, uint32_t y)
 {
 
 	if (x > fb->common.framebuffer_width)
@@ -39,21 +37,43 @@ uint32_t* get_pixel_addr (uint32_t x, uint32_t y)
 	uint32_t column = x * (bypp);
 	uint32_t final_addr = (uint32_t) fb_virt_addr + row + column;
 
-	return (uint32_t*) final_addr;
+	return (uint8_t*) final_addr;
 }
 
 void init_framebuffer() {
-	// Low priority: Make more flexible to all values rather than assuming...
+	// HIGH priority: Make more flexible to all values rather than assuming...
 	uint64_t* fb_addr = (uint64_t*)(fb->common.framebuffer_addr);
 	uint32_t num_pages = (fb->common.framebuffer_pitch * fb->common.framebuffer_height);
 
 	logf("Type of FrameBuffer: %d\n", fb->common.framebuffer_type);
+	logf("Framebuffer bpp: %d, framebuffer width: %d, framebuffer height: %d\n", fb->common.framebuffer_bpp, 
+				fb->common.framebuffer_width, fb->common.framebuffer_height);
 	logf("FB_ADDR: %x\n", fb_addr);
 
+	// TODO: Add support for indexed color (although I can't test it...)
+	switch (fb->common.framebuffer_type) {
+		case 0:
+			panic("Framebuffer in INDEXED_COLOR. Not supported but COOL!!!!\n");
+			break;
+		case 1:
+			logf("Supported RGB mode for framebuffer!\n");
+			break;
+		case 2:
+			panic("Framebuffer in TEXT_MODE. how did you get here??\n");
+			break;
+		default:
+			triple_fault();
+	}
+
+
 	// Mapping framebuffer
-	fb_virt_addr = (uint32_t*) page_kalloc(num_pages, 0x3, (uint32_t) fb_addr);
+	fb_virt_addr = (uint32_t*) page_kalloc(num_pages, 0x3, (uint32_t) fb->common.framebuffer_addr);
+
+
+	//*fb_virt_addr = 0xffffffff;
 
 	bypp = fb->common.framebuffer_bpp/8;
+	fb_set_bpp(bypp);
 	fb_set_width(fb->common.framebuffer_width);
 	fb_set_height(fb->common.framebuffer_height);
 }
@@ -99,12 +119,16 @@ void* get_sdt_by_signature(char* signature)
 	struct RSDT* rsdt = (struct RSDT *) rsdt_addr;
 
 	int entries = (rsdt->h.Length - sizeof(struct ACPISDTHeader)) / 4;
-
+	struct ACPISDTHeader* potential;
 	for (int i = 0; i < entries; i++) {
 		struct ACPISDTHeader* potential = (struct ACPISDTHeader *) rsdt->NextSDT[i];
+		memory_map(current_vmm->root_pd, (uint32_t*) PGROUNDDOWN((uint32_t) potential), \
+				(uint32_t*) PGROUNDDOWN((uint32_t) potential), 0x3);
 		if (strcmp(signature, potential->Signature, 4))
 			return (void*) potential;
 	}
+
+
 	panic("Signature not found in ACPI tables\n");
 	return NULL;
 
@@ -122,17 +146,32 @@ void init_rsdt_v1()
 	}
 	// Easiest to just identity map here...
 	memory_map(current_vmm->root_pd, (uint32_t*)((uint32_t)rsdp_d->RsdtAddress & ~0xFFF), (uint32_t*)((uint32_t)rsdp_d->RsdtAddress & ~0xFFF), 0x1);
+	
 	rsdt_addr = (struct ACPISDTHeader *) rsdp_d->RsdtAddress;
+
+	if (rsdt_addr->Length + (uint32_t) rsdt_addr > PGROUNDUP((uint32_t) rsdt_addr)) {
+		// We use 4096 because it is in uint32_t form; not a pointer...
+		memory_map(current_vmm->root_pd, (uint32_t*)((uint32_t)rsdp_d->RsdtAddress & ~0xFFF + 4096), (uint32_t*)((uint32_t)rsdp_d->RsdtAddress & ~0xFFF + 4096), 0x1);
+	}
 }
 
 
 // INIT MACARONI
-struct multiboot_tag_pointers init_multiboot(uint32_t addr)
+struct multiboot_tag_pointers init_multiboot(uint32_t *root_pd, uint32_t addr)
 {
 	struct multiboot_tag_pointers all_tags = {0};
 	struct multiboot_tag *tag;
 	unsigned size;
 	size = *(unsigned *) addr;
+
+	if ((uint32_t) addr + size > PGROUNDUP((uint32_t) addr)) {
+		memory_map(root_pd, (uint32_t *) PGROUNDDOWN((uint32_t) addr - 0xC0000000),(uint32_t *) PGROUNDDOWN((uint32_t) addr), 0x3);
+		memory_map(root_pd, (uint32_t *) PGROUNDDOWN((uint32_t) addr - 0xC0000000 + size),(uint32_t *) PGROUNDDOWN((uint32_t) addr + size), 0x3);
+	}
+
+
+	uint32_t test = *((uint32_t *)(addr + size));
+
 	for (tag = (struct multiboot_tag *) (addr + 8);
 			tag->type != MULTIBOOT_TAG_TYPE_END;
 			tag = (struct multiboot_tag *) ((multiboot_uint8_t *)  tag + ((tag->size + 7) & ~7)))

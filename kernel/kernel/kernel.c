@@ -166,6 +166,15 @@ void panic(char* reason) {
 					hlt");
 }
 
+void triple_fault()
+{
+
+	asm volatile ("	pushl $0x0	\n\
+					pushw $0x0	\n\
+					lidt (%esp) \n\
+					int $0x4");
+}
+
 void test_func()
 {
 	logf("Test func ran bruh\n");
@@ -190,18 +199,19 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	}
 	uint32_t* tag_size = (uint32_t*) (multiboot_loc + 0xC0000000);
 	uint32_t kernel_size = ((uint32_t) &_kernel_end - ((uint32_t)&_kernel_start + 0xC0000000));
-	logf("Kernel Size %x, multiboot_loc: %x, tag_size: %x\n", kernel_size, multiboot_loc, *tag_size);
 	disable_pic();
-	uint32_t* kpd = pg_init(entry_pd, *tag_size);
+	uint32_t* kpd = pg_init(entry_pd, tag_size);
 	gdt_install();
 	init_idt();
+	memory_map(kpd, (uint32_t *) PGROUNDDOWN((uint32_t) tag_size - 0xC0000000), (uint32_t *) PGROUNDDOWN((uint32_t) tag_size), 0x3);
 	uint32_t kalloc_bottom = kinit((uint32_t *) (multiboot_loc + *tag_size)); // Bandaid fix done here. Will bite me in the ass later...
 	vmm* kvmm = create_vmm(kpd, 0xCC000000, 0xFFE00000, 0);
 	set_kernel_vmm(kvmm);
 	set_current_vmm(kvmm);
 
 	logf("PSF START: %x\n", *&_binary_font_psf_start);
-	struct multiboot_tag_pointers tags = init_multiboot(multiboot_loc + 0xC0000000); // Must call before init_apic to properly parse. Must also be done after paging
+	struct multiboot_tag_pointers tags = init_multiboot(kpd, multiboot_loc + 0xC0000000); // Must call before init_apic to properly parse. 
+																					 // Must also be done after paging
 	
 	transfer_dynamic();
 	vmm_transfer_dynamic(&kvmm, kpd);
@@ -210,9 +220,14 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	// Do everything you want with the multiboot tags before this point. Past here it will be overwritten.	
 	init_apic(kvmm);
 	init_framebuffer();
+
+	uint32_t *test = (uint32_t *)0xCC004000;
+	*test = 0xfffffff;
+	put_pixel(100, 100, 0xffffffff);
+
 	init_font();
 	// Can use text now!
-	
+
 	logf("KERNEL STARTING LOC: %x KERNEL ENDING LOC: %x SIZE: %x\n", &_kernel_start, &_kernel_end, kernel_size); 
 	init_heap();
 	init_terminal();
@@ -227,7 +242,7 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	init_scheduler();
 	start_terminal();
 	process_t *new_process = create_process("Test", &test_func, 0, 1);
-	set_initial_lapic_timer_count(0xff00000); // Quantum of time for scheduling
+	set_initial_lapic_timer_count(0xff000); // Quantum of time for scheduling
 	while (1) {
 		terminal_loop();
 

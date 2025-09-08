@@ -38,6 +38,8 @@ void print_hex (uint64_t number);
 void logf(char*, ...);
 uint32_t get_stackp();
 
+void triple_fault();
+
 static inline void io_wait(void)
 {
     outportb(0x80, 0);

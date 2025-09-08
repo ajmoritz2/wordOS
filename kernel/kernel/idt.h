@@ -29,6 +29,7 @@ typedef struct isr_frame {
 	uint32_t ecx;
 	uint32_t ebx;
 	uint32_t eax;
+	uint32_t ebp;
 
 	uint32_t isr_no;
 	uint32_t isr_err;

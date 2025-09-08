@@ -6,6 +6,7 @@ if grub-file --is-x86-multiboot2 word.bin; then
 	mkdir -p isodir/boot/grub
 	cp word.bin isodir/boot/word.bin
 	cat > isodir/boot/grub/grub.cfg << EOF
+	insmod all_video
 	menuentry "wordos" {
 			multiboot2 /boot/word.bin
 			boot

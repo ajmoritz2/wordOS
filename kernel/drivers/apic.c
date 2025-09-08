@@ -124,7 +124,6 @@ void init_ioapic()
 	write_ioapic_register(pit_reg+1, 0);
 
 }
-
 // LAPIC Stuff
 // TIMER Instructions START
 
@@ -179,7 +178,6 @@ void init_apic()
 
 	init_ioapic();
 	calibrate_timer();
-
 }
 
 // Calibration

@@ -47,7 +47,7 @@ word.bin: $(OBJS) $(ARCHDIR)/linkerNP.ld
 	grub-file --is-x86-multiboot2 word.bin
 
 %.s: %.o
-	$(CC) -std=gnu99 -ffreestanding $< -o $@
+	$(AS) -std=gnu99 -ffreestanding $< -o $@
 
 %.c: %.o
 	$(CC) -g -c $< -o $@ $(CFLAGS)

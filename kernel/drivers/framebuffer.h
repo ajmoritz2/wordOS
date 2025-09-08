@@ -30,10 +30,11 @@ extern uint16_t screen_height;
 
 void fb_set_width(uint16_t w);
 void fb_set_height(uint16_t h);
+void fb_set_bpp(uint8_t argbpp);
 uint16_t fb_get_width();
 uint16_t fb_get_height();
 void fb_put_glyph(char glyph, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, uint16_t size);
-void fill_square(uint32_t* addr, uint16_t width, uint16_t height, uint8_t r, uint8_t g, uint8_t b, uint8_t w);
+void fill_square(uint8_t* addr, uint16_t width, uint16_t height, uint8_t r, uint8_t g, uint8_t b, uint8_t w);
 void put_pixel(uint32_t x, uint32_t y, uint32_t color);
 uint8_t* get_glyph(int num);
 

@@ -94,6 +94,7 @@ uint8_t exc_print(struct isr_frame *frame)
 				frame->eax, frame->ebx, frame->ecx, frame->edx, frame->edi, frame->esi, frame->cr3, frame->cr2, \
 	   			frame->cr0, frame->eip, frame->cs, frame->eflags);	   
 	uint32_t code = 1;
+	
 	switch (frame->isr_no) {
 		case 0x00:
 			logf("Division by zero in kernel space!\n");
@@ -103,7 +104,7 @@ uint8_t exc_print(struct isr_frame *frame)
 			break;
 		case 0x0D:
 			logf("Err code: %x ", frame->isr_err);
-			log_to_serial("Double fault in kernel space!\n");
+			log_to_serial("General Protection! in kernel space!\n");
 			break;
 		case 26:
 			logf("You mess with the instruction pointer you MESS WITH ME!\n");
@@ -118,6 +119,7 @@ uint8_t exc_print(struct isr_frame *frame)
 			stack_trace();
 		default:
 			logf("Stack at %x, Interrupt occured: %d", frame->isr_err, frame->isr_no);
+			code = 1;
 			log_to_serial("\n");
 			break;
 	}
@@ -133,7 +135,6 @@ cpu_status_t* irq_handler(cpu_status_t* status) {
 	switch (num) {
 	case 0x30: // LAPIC Timer
 		status = handle_schedule(status);
-		logf("Scheduling eip %x\n", status->eip);
 		break;
 	case 0x31: // PIT timer
 		end_calibration();

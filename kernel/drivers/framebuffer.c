@@ -7,24 +7,28 @@
 #include "../multiboot/multiboot2.h"
 
 #define FONT_SIZE		2
-#define MAX_CURSOR_X 	74
-#define MAX_CURSOR_Y	37
 extern struct multiboot_tag_framebuffer* fb;
 
 uint32_t* fb_virt_addr;
 
 struct psf1_header* font_head;
 
-uint16_t cursor_xpaws = 0;
+uint16_t cursor_xpaws = 0; // Legacy feature for name alone...
 uint16_t cursor_ypaws = 0; // :3
 
 uint16_t screen_width;
 uint16_t screen_height;
+uint8_t bpp = 0;
 
 
 void fb_set_width(uint16_t w)
 {
 	screen_width = w;
+}
+
+void fb_set_bpp(uint8_t argbpp)
+{
+	bpp = argbpp;
 }
 
 void fb_set_height(uint16_t h)
@@ -34,6 +38,7 @@ void fb_set_height(uint16_t h)
 
 void fb_put_glyph(char glyph, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, uint16_t size)
 {
+	// INCLUDE BPP
 	uint8_t* gaddr = get_glyph(glyph);
 	uint8_t fgred = fg >> 24;
 	uint8_t fggreen = (fg >> 16) & 255;
@@ -44,14 +49,14 @@ void fb_put_glyph(char glyph, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, 
 	uint8_t bgblue = (bg >> 8) & 255;
 
 	for (int i = 0; i < font_head->charsize; i++) {
-		uint32_t* pixel_addr = get_pixel_addr(x, y);
+		uint8_t* pixel_addr = get_pixel_addr(x, y);
 		for(int j = 7; j >= 0; j--) {
 			if (*gaddr & 1 << j) {
 				fill_square(pixel_addr, size, size, fgred, fggreen, fgblue, 0x0);
 			} else {
 				fill_square(pixel_addr, size, size, bgred, bggreen, bgblue, 0x0);
 			}
-			pixel_addr+=size;
+			pixel_addr+=size*bpp;
 		}
 		y += size;
 		gaddr += 1;
@@ -65,10 +70,10 @@ uint8_t* get_glyph(int num)
 	return glyph;
 }
 
-void fill_square(uint32_t* addr, uint16_t width, uint16_t height, uint8_t r, uint8_t g, uint8_t b, uint8_t w) 
+void fill_square(uint8_t* addr, uint16_t width, uint16_t height, uint8_t r, uint8_t g, uint8_t b, uint8_t w) 
 {
-	uint8_t* pix_loc = (uint8_t*) addr;
-	uint8_t pixel_width = 4;
+	uint8_t* pix_loc = addr;
+	uint8_t pixel_width = bpp;
 
 	for  (int yh = 0; yh < height; yh++) {
 		for (int xw = 0; xw < width; xw++) {
@@ -76,6 +81,7 @@ void fill_square(uint32_t* addr, uint16_t width, uint16_t height, uint8_t r, uin
 			pix_loc[pixel_width*xw + 1] = g;
 			pix_loc[pixel_width*xw + 2] = r;
 		}
+
 		pix_loc += fb->common.framebuffer_pitch;
 	}
 }
@@ -95,7 +101,9 @@ void init_font()
 
 void put_pixel(uint32_t x, uint32_t y, uint32_t color)
 {
-	uint32_t* pixel_addr = get_pixel_addr(x, y);
+	uint8_t* pixel_addr = get_pixel_addr(x, y);
 
-	*pixel_addr = color;	
+	*pixel_addr = color >> 22 & 256;	
+	*(pixel_addr + 1) = color >> 16 & 22;	
+	*(pixel_addr + 1) = color >> 8 & 22;	
 }

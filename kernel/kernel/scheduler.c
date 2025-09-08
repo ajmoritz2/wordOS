@@ -25,8 +25,8 @@ void run_idle()
 
 void set_current_process_idle()
 {
-//	current_process->status = IDLE;
-	run_idle();
+	current_process->status = IDLE;
+	asm ("hlt");
 }
 
 void init_idle_process()
@@ -144,6 +144,7 @@ void kill_current_process()
 process_t *create_process(char *name, void(*function)(void), void *arg, int privileged) 
 {
 	asm volatile ("cli");
+	load_directory((uint32_t *) (kernel_vmm->root_pd[1023] & ~0x3FF));
 	process_t *process = kalloc(sizeof(process_t));
 	logf("Creating process at %x\n", process);
 	memset(process, sizeof(process), 0);

@@ -27,9 +27,10 @@ void memory_map(uint32_t* root_pd, uint32_t* phys,
 	if (!(root_pd[pd_index] & 1)) {
 	       	create_new_pt(root_pd, pd_index);
 	}
+
 		
 	uint32_t* page_table = (uint32_t*) (RECURSIVE_ADDR + (pd_index * 4096)); // Should be correct no matter what
-	if ((uint32_t)phys & 0x3FF) { log_to_serial("PHYSICAL ADDRESS NOT PAGE ALIGNED\n"); return;}
+	if ((uint32_t)phys & 0x3FF) { panic("PHYSICAL ADDRESS NOT PAGE ALIGNED\n"); return;}
 
 	page_table[pt_index] = (uint32_t)phys | flags;	
 }
@@ -159,16 +160,23 @@ uint8_t handle_exception(struct isr_frame *frame)
 	return 1;
 }
 
-uint32_t* pg_init(uintptr_t *entry_pd, uint32_t tag_size)
+uint32_t* pg_init(uintptr_t *entry_pd, uint32_t *tag_size)
 {
 	// Copy over tables into C code for easier access
 	
 	newinit_pd(kernel_pd);
+
+	memory_map(entry_pd, (uint32_t *) PGROUNDDOWN((uint32_t) tag_size - 0xC0000000), (uint32_t *) PGROUNDDOWN((uint32_t) tag_size), 0x3);
+
 	memset(kernel_pd, 0, 1024);
-	memcpy(kernel_pt, (uint32_t*)((entry_pd[768] & 0xFFFFF000) + 0xC0000000), 4096);
-	init_kpt(kernel_pt, tag_size); // PRAY TO GOD
+	memcpy(kernel_pt, (uint32_t*)(entry_pd + 0xC0000000), 1024 * sizeof(uint32_t));
+
+	logf("tag size location at %x\n", tag_size); 
+
+	init_kpt(kernel_pt, *tag_size); // PRAY TO GOD
 	kernel_pd[768] = (uint32_t)PHYSADDR((uint32_t) kernel_pt) | 3;
 	kernel_pd[1023] = (uint32_t)PHYSADDR((uint32_t) kernel_pd) | 3;	
+	memory_map(kernel_pd, (uint32_t *) PGROUNDDOWN((uint32_t) tag_size - 0xC0000000), (uint32_t *) PGROUNDDOWN((uint32_t) tag_size), 0x3);
 	// ENDING TABLE COPIES
 	// To put a page table in the directory, its pd[virt >> 22] into phys addr of pt 
 	load_page_directory((uint32_t*)PHYSADDR((uint32_t)kernel_pd));

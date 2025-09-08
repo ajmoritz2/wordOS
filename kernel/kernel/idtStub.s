@@ -64,6 +64,7 @@ isr_frame_as:
 	iret
 
 irq_frame:
+	pushl %ebp
 	pushl %eax
 	pushl %ebx
 	pushl %ecx
@@ -71,7 +72,7 @@ irq_frame:
 	pushl %esi
 	pushl %edi
 	movl %esp, %eax
-	addl $0x2c, %eax
+	addl $0x30, %eax
 	pushl %eax 	#Reset ESP
 
 	movl %cr0, %eax
@@ -89,9 +90,9 @@ irq_frame:
 
 	movl 0xc(%eax), %esp
 	
-	pushl 0x38(%eax) # EFLAGS 
-	pushl 0x34(%eax) # CS
-	pushl 0x30(%eax) # EIP
+	pushl 0x3c(%eax) # EFLAGS 
+	pushl 0x38(%eax) # CS
+	pushl 0x34(%eax) # EIP
 	pushl 0x24(%eax) # eax
 	movl 0x4(%eax), %ebx
 	movl %ebx, %cr2
@@ -103,6 +104,7 @@ irq_frame:
 	movl 0x18(%eax), %edx	
 	movl 0x1c(%eax), %ecx	
 	movl 0x20(%eax), %ebx	
+	movl 0x28(%eax), %ebp
 	popl %eax
 	sti
 	iret

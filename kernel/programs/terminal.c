@@ -350,6 +350,7 @@ void printf(char *string, ...)
 			draw_text_buffer();
 		string++;
 	}
+	draw_user_chars();
 }
 
 void write_user_char(char ch)
@@ -374,6 +375,14 @@ void tflush()
 	draw_text_buffer();
 }
 
+void bark_process()
+{
+	for (int i = 0; i < 10; i++)
+		printf("Bark\n");
+
+	kill_current_process();
+}
+
 void parse_user_chars()
 {
 	char parse_index = 2;
@@ -395,6 +404,7 @@ void parse_user_chars()
 		printf("WordOS kernel version: %t30%s%t10\n", KERNEL_VERSION);
 	} else if (strcmp("woof", command, strlen("woof"))){
 		printf("%t54Bark! :3%t10\n");
+		create_process("Bark", &bark_process, 0, 0);
 	} else {
 		printf("Command %t20%s%t10 unknown.\n", command);
 	}
@@ -410,6 +420,7 @@ key_event next_keycode()
 		return nuller;
 	}
 
+
 	key_buffer_tail = (key_buffer_tail + 1)	% MAX_KEY_BUFFER_SIZE;
 	key_event to_ret = key_buffer[key_buffer_tail];
 
@@ -423,12 +434,16 @@ void terminal_loop()
 		key_event event = next_keycode();
 		if (event.code == KEY_NULL) {
 			asm("hlt");
+
 			continue;
 		}
-	
-		logf("Key pressed\n");
+
+
 		char keysym = keycode_to_keysym(event);
 		if (event.masks & RELEASE_MASK) keysym = 0;
+
+		char *test = (char *)&event;
+		//logf("Event masks %x\n", *(test));
 		if (keysym) {
 			write_user_char(keysym);
 			if (keysym == '\n') {

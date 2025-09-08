@@ -58,10 +58,10 @@ struct multiboot_tag_pointers {
 void get_mmap(struct multiboot_tag_pointers* tags);
 void* get_sdt_by_signature(char* signature);
 
-uint32_t* get_pixel_addr(uint32_t x, uint32_t y);
+uint8_t* get_pixel_addr(uint32_t x, uint32_t y);
 
 void* parse_MADT(uint8_t entry_id, uint8_t count);
-struct multiboot_tag_pointers init_multiboot(uint32_t addr);
+struct multiboot_tag_pointers init_multiboot(uint32_t *root_pd, uint32_t addr);
 void init_framebuffer();
 
 #endif

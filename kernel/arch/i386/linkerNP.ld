@@ -11,19 +11,20 @@ SECTIONS
 	_kernel_start = .;
 
 	/* Start by putting the header in */
+	.multiboot.text : {
+		*(.multiboot.text)
+	}
 	.mb2_hdr : 
 	{
 		*(.mb2_hdr)
 	}
 
-	.multiboot.text : {
-		*(.multiboot.text)
-	}
 
 	. += 0xC0000000;
 
 	.text ALIGN(4K) : AT(ADDR(.text) - 0xC0000000)
 	{
+		*(.idt_setup)
 		*(.text)
 	}
 
