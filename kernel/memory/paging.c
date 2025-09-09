@@ -1,6 +1,8 @@
 #include "../kernel/kernel.h"
 #include "../kernel/idt.h"
+#include "../drivers/apic.h"
 #include "pmm.h"
+#include "vmm.h"
 #include "string.h"
 #include "paging.h"
 #include <stddef.h>
@@ -158,6 +160,93 @@ uint8_t handle_exception(struct isr_frame *frame)
 	}
 
 	return 1;
+}
+
+void init_pae(vmm *current_vmm)
+{
+	/*
+	 * When we look at it, the kernel pages are mapped at 0b11...
+	 * This means we are ALWAYS accessing the 4th pdpte, so the addr
+	 * do not need to change for that.
+	 * Framebuffer is the noteable exception.
+	 */
+
+	struct cpuid_status cpu01h = get_cpuid(0x01);
+
+	if (cpu01h.eax & 1 << 6)
+		logf("PAE is available!\n");
+	else
+		panic("No PAE supported...\n");
+
+	struct cpuid_status cpu808h = get_cpuid(0x80000008);
+
+	uint8_t max_phys_addr = cpu808h.eax & 0xff;
+
+	logf("Max phys bit extensions: %d\n", max_phys_addr);
+
+	uint32_t pdpt_phys = (uint32_t) alloc_phys_page();
+	uint32_t *pdpt_page = page_kalloc(PGSIZE, 0x3, (uint32_t) pdpt_phys);
+
+	uint64_t *new_pd_phys = (uint64_t *) alloc_phys_page();
+	uint64_t *new_pd = page_kalloc(PGSIZE, 0x3, (uint32_t) new_pd_phys);
+
+	uint64_t *identity_pd_phys = (uint64_t *) alloc_phys_page();
+	uint64_t *identity_pd = page_kalloc(PGSIZE, 0x3, (uint32_t) identity_pd_phys);
+
+	uint64_t *identity_pt_phys = (uint64_t *) alloc_phys_page();
+	uint64_t *identity_pt = page_kalloc(PGSIZE, 0x3, (uint32_t) identity_pt_phys);
+	pdpt_page[0] = (uint32_t) identity_pd_phys | 1;
+
+	// Here we gotta copy over our kernel pages, but in a weird way because we now have 512 maps
+	
+
+	/* We need to identity map SPECIFICALLY this code page, because we will do something awesome
+	 * and disable paging (in the middle of the fucking execution...
+	 *
+	 * Lucky for us we know everything (codewise) is currently 0xC.. ahead of its true addr
+	 */
+
+	uint32_t eip = 0;
+	asm volatile ("		cli \n\
+						jmp eip_get2 \n\
+				eip_get1:		\n\
+						jmp eip_get_fin	\n\
+				eip_get2:		\n\
+						call eip_get1	\n\
+				eip_get_fin:	\n\
+						pop %%eax		\n\
+						mov %%eax, %0" : "=r" (eip));
+
+	eip -= 0xC0000000;
+	eip &= ~0x3ff;
+
+	memory_map(current_vmm->root_pd, (uint32_t *) eip, (uint32_t *) (eip), 0x3);
+
+	identity_pt[(eip >> 12) & 0x1ff] = (uint64_t) eip | 3;
+	identity_pd[(eip >> 21) & 0x1ff] = (uint64_t) identity_pt_phys | 3;
+
+	logf("Physical pdpt page is at %x\n", pdpt_phys);
+
+
+	asm volatile ("mov $disable_paging, %%eax \n\
+					mov %0, %%ecx	\n\
+					sub $0xc0000000, %%eax \n\
+					jmp %%eax \n\
+			disable_paging: \n\
+					mov $0x00000001, %%eax\n\
+					mov %%eax, %%cr0\n\
+					mov %%ecx, %%cr3\n\
+					mov %%cr4, %%eax\n\
+					orl $0x20, %%eax\n\
+					mov %%eax, %%cr4\n\
+					mov %%cr0, %%eax\n\
+					or $0x80000000, %%eax\n\
+					mov %%eax, %%cr0\n\
+					1: jmp 1b" : : "m" (pdpt_phys));  // Disables paging. Should get a fault if i remove the loop...
+
+	logf("EIP AT %x\n", eip);
+	logf("PDPT LOCATED AT %x\n", pdpt_page);
+
 }
 
 uint32_t* pg_init(uintptr_t *entry_pd, uint32_t *tag_size)

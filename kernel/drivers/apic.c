@@ -57,7 +57,7 @@ uint32_t* get_apic_addr()
 	return (uint32_t*)(eax & 0xFFFFF000);
 }
 
-void get_cpuid(int eax_val)
+struct cpuid_status get_cpuid(int eax_val)
 {
 	uint32_t eax = 0, ebx = 0, ecx = 0, edx = 0;
 
@@ -73,7 +73,11 @@ void get_cpuid(int eax_val)
 						[edx] "=m"(edx)
 					: [eax_val] "r"(eax_val));
 
-	logf("CPU_ID: %d EAX EBX ECX EDX\n%x\n%x\n%x\n%x\nEND...\n", eax_val, eax, ebx, ecx, edx);	
+	struct cpuid_status ret_val = {eax, ebx, ecx, edx};
+
+	logf("CPU_ID: %x EAX EBX ECX EDX\n%x\n%x\n%x\n%x\nEND...\n", eax_val, eax, ebx, ecx, edx);	
+
+	return ret_val;
 }
 
 

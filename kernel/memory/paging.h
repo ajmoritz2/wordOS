@@ -59,4 +59,9 @@ uint32_t* create_new_pt(uint32_t*, uint32_t);
 void copy_kernel_pd_index(void *pd, int index);
 void copy_higher_half_kernel_pd(void *pd);
 
+// Start PAE
+
+void init_pae(vmm *current_vmm);
+
+
 #endif

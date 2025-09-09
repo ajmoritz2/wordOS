@@ -16,6 +16,13 @@ struct LVTEntry {
 	uint16_t InterruptsMask : 1;
 };
 
+struct cpuid_status {
+	uint32_t eax;
+	uint32_t ebx;
+	uint32_t ecx;
+	uint32_t edx;
+};
+
 void write_ioapic_register(uint32_t reg, uint32_t data);
 void set_initial_lapic_timer_count(uint32_t count);
 void set_pit_one_shot(uint16_t count);
@@ -28,5 +35,6 @@ void calibrate_lapic();
 void send_EOI(void* apic_addr);
 void disable_pic();
 void init_apic();
+struct cpuid_status get_cpuid(int eax_val);
 
 #endif

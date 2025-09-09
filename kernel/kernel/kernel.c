@@ -219,6 +219,10 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	set_current_vmm(kvmm);
 	// Do everything you want with the multiboot tags before this point. Past here it will be overwritten.	
 	init_apic(kvmm);
+	
+	// From here forward we should start PAE...
+	init_heap();
+	init_pae(kvmm);
 	init_framebuffer();
 
 	uint32_t *test = (uint32_t *)0xCC004000;
@@ -229,7 +233,6 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	// Can use text now!
 
 	logf("KERNEL STARTING LOC: %x KERNEL ENDING LOC: %x SIZE: %x\n", &_kernel_start, &_kernel_end, kernel_size); 
-	init_heap();
 	init_terminal();
 	init_keyboard();
 	printf("Welcome to WordOS. Home of the METS!\n");

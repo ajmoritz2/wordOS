@@ -89,7 +89,7 @@ void kfree(void *mem)
 		node_next->size = 0;
 		
 		node->next = node_next->next;
-		printf("Defragmented node %t30%x%t10 with %t30%x%t10. New size: %x\n", node, node_next, node->size);
+		logf("Defragmented node %t30%x%t10 with %t30%x%t10. New size: %x\n", node, node_next, node->size);
 	}
 
 	if (node_prev && node_prev->status == HEAP_FREE) {
@@ -101,6 +101,6 @@ void kfree(void *mem)
 			node->next->prev = node_prev; // Swapping nexts and prevs
 			node->next = 0;
 		}
-		printf("Defragmented node %t30%x%t10 with %t30%x%t10. New size: %x\n", node_prev, node, node_prev->size);
+		logf("Defragmented node %t30%x%t10 with %t30%x%t10. New size: %x\n", node_prev, node, node_prev->size);
 	}
 }
