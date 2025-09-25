@@ -17,6 +17,10 @@ typedef struct vm_obj {
 
 typedef struct vmm{
 	uint32_t* root_pd;
+	uint64_t *root_pdpt;
+	uint64_t pd_low; // We can perhaps save a headache here by keepinf pd phys addrs in here.
+	uint64_t pd_mid; // We will have to map to the kernel page for a quick sec while we map these
+	uint64_t pd_high; // And then finally recursively map them. After, unmap from kernel.
 	struct rbtree_node* root;
 	uintptr_t vm_obj_store_addr;
 	uint32_t low;	// UNUSED FOR NOW
@@ -39,9 +43,15 @@ void *alloc_stack();
 void init_user_memory();
 
 
-void* vmm_page_alloc(vmm *cvmm, size_t length, size_t flags, uint32_t phys);
+void* vmm_page_alloc(vmm *cvmm, size_t length, size_t flags, uint64_t phys, uint32_t pae_enable);
 void vmm_page_free(vmm *cvmm, void* addr);
+void pae_page_free(vmm *cvmm, void *addr);
 
+
+void *pae_kalloc(size_t length, size_t flags, uint64_t phys);
+void pae_kfree(void *addr);
+void *pae_alloc(size_t length, size_t flags, uint64_t phys);
+void pae_free(void *addr);
 
 void *page_kalloc(size_t length, size_t flags, uint32_t phys);
 

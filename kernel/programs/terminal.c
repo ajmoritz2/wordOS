@@ -25,6 +25,7 @@ char *user_chars;
 uint16_t user_char_index = 2;
 uint16_t textbuf_loc = 0;
 uint16_t cur_lines = 0;
+uint8_t term_ready = 0;
 
 int max_char_x, max_char_y;
 
@@ -173,6 +174,11 @@ void scroll_text_buffer_down()
 	cur_lines--;
 
 	textbuf_loc -= end_first_line;
+}
+
+uint8_t is_term_ready()
+{
+	return term_ready;
 }
 
 void write_text_buffer(char *text)
@@ -471,6 +477,7 @@ void init_terminal()
 	max_char_y = (screen_height / (16 * font_size)) - 2;
 
 	text_buffer = (char *)kalloc((max_char_x * max_char_y) + 1);
+	memset(text_buffer, 0, max_char_x * max_char_y + 1);
 	user_chars = (char *) kalloc(max_char_x + 1);
 	user_chars[0] = '>';
 	user_chars[1] = ' ';
@@ -479,4 +486,5 @@ void init_terminal()
 
 	printf("Terminal function: %t70OK!%t10\n");
 	tflush();
+	term_ready = 1;
 }

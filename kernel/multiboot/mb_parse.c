@@ -14,6 +14,7 @@
 #include "../memory/string.h"
 #include "../kernel/kernel.h"
 #include "../drivers/framebuffer.h"
+#include "../programs/terminal.h"
 #include <stdint.h>
 
 extern vmm* current_vmm;
@@ -67,15 +68,18 @@ void init_framebuffer() {
 
 
 	// Mapping framebuffer
-	fb_virt_addr = (uint32_t*) page_kalloc(num_pages, 0x3, (uint32_t) fb->common.framebuffer_addr);
+	fb_virt_addr = (uint32_t*) pae_kalloc(num_pages, 0x3, (uint64_t) fb->common.framebuffer_addr);
 
-
-	//*fb_virt_addr = 0xffffffff;
 
 	bypp = fb->common.framebuffer_bpp/8;
 	fb_set_bpp(bypp);
 	fb_set_width(fb->common.framebuffer_width);
 	fb_set_height(fb->common.framebuffer_height);
+
+	*fb_virt_addr = 0xffffffff;
+	fb_virt_addr = (uint32_t *) ((uint32_t) fb_virt_addr + bypp);
+	*fb_virt_addr = 0xff00ff00;
+
 }
 
 // MADT Parsing

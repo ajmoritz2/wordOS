@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "../kernel/idt.h"
+#include "vmm.h"
 
 #define PGSIZE		1024
 
@@ -54,7 +55,8 @@ uint32_t* pg_init(uintptr_t *entry_pd, uint32_t *tag_size);
 void memory_map(uint32_t* root_pd, uint32_t* phys, uint32_t* virt, size_t flags);
 void memory_unmap(uint32_t*, uint32_t*);
 
-uint32_t* create_new_pt(uint32_t*, uint32_t);
+uint32_t* create_new_pt(uint32_t*, uint32_t, uint32_t recursive_addr);
+uint64_t *create_new_pae_pt(uint64_t *root_pdpt, uint32_t pdpt_index, uint32_t pd_index, uint32_t recursive_addr);
 
 void copy_kernel_pd_index(void *pd, int index);
 void copy_higher_half_kernel_pd(void *pd);
@@ -62,6 +64,8 @@ void copy_higher_half_kernel_pd(void *pd);
 // Start PAE
 
 void init_pae(vmm *current_vmm);
+void *pae_mmap(uint64_t *root_pdpt, uint64_t phys, virtual_t *virt, uint32_t flags);
+void pae_unmap(uint32_t *virt);
 
 
 #endif

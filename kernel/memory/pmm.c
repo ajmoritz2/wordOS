@@ -1,8 +1,8 @@
 #include "../kernel/kernel.h"
 #include "string.h"
 #include "paging.h"
-#include "pmm.h"
 #include "vmm.h"
+#include "pmm.h"
 #include "../multiboot/multiboot2.h"
 #include <stddef.h>
 
@@ -89,7 +89,7 @@ uint32_t physical_to_frame(uint32_t* physical)
 	return ((uint32_t)physical-0x100000) / 4096;
 }
 
-uint32_t *alloc_phys_page()
+uint64_t alloc_phys_page()
 {
 	uint32_t first_frame = get_first_frame();
 	if (first_frame == -1)
@@ -101,7 +101,7 @@ uint32_t *alloc_phys_page()
 	if (frame_to_physical(first_frame) > 0x1000000) {
 		panic("Out of memory!");
 	}
-	return (uint32_t*) frame_to_physical(first_frame);
+	return (uint64_t) frame_to_physical(first_frame);
 }
 
 /*

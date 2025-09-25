@@ -10,6 +10,7 @@
 #include "../memory/paging.h"
 #include "../memory/vmm.h"
 #include "../multiboot/mb_parse.h"
+#include "../programs/terminal.h"
 #include "keyboard.h"
 #include "apic.h"
 
@@ -39,6 +40,7 @@ uint32_t volatile* glob_ioapic_addr = 0;
 uint32_t ticks_per_ms = 0;
 
 uint32_t calibrating = 0;
+struct MADTEntryType2 test_try = {2, 2, 2, 2};
 
 // Assembly Instructions START
 uint32_t* get_apic_addr()
@@ -127,6 +129,18 @@ void init_ioapic()
 	write_ioapic_register(pit_reg, 49); // Setting the PIT irq vec
 	write_ioapic_register(pit_reg+1, 0);
 
+	struct MADTEntryType2 *ISOS = (struct MADTEntryType2 *) parse_MADT(2, 3);
+
+	if (ISOS) {
+		test_try = *ISOS;
+		logf("Test try at %x\n", &test_try);
+	}
+
+}
+
+void print_test_try()
+{
+	printf("BUS: %x\nSource: %x\nGSI: %x\nFlags: %x\n", test_try.BusSource, test_try.IRQSource, test_try.GSI, test_try.Flags);
 }
 // LAPIC Stuff
 // TIMER Instructions START
@@ -176,7 +190,10 @@ void init_apic()
 	glob_lapic_addr = (uint32_t*)page_kalloc(4096, 0x3, (uint32_t)get_apic_addr());; // TODO: Create a global core struct (stated earlier as well)
 	uint32_t volatile* spur_vec = (uint32_t*) ((uint32_t)glob_lapic_addr + SPUR_VEC);
 	*spur_vec = *spur_vec | 0x1FF; // Map vec to 0xF0 entry and enable
-	logf("LAPIC Spurious vector set\n");
+								   //
+	uint32_t apic_id = 0;
+	apic_id = lapic_read_reg(0x20);
+	logf("APIC ID IS: %x\n\n", apic_id);
 	
 	lapic_timer_init();
 

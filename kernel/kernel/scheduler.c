@@ -4,6 +4,7 @@
 #include "../memory/paging.h"
 #include "../memory/heap.h"
 #include "../memory/string.h"
+#include "../programs/terminal.h"
 #include <stdint.h>
 #include "scheduler.h"
 
@@ -91,14 +92,72 @@ process_t *get_process_head()
 	return process_list_head;
 }
 
+void create_new_pdptes(process_t *process)
+{
+	uint64_t phys_pdlow = alloc_phys_page();
+	uint64_t phys_pdmed = alloc_phys_page();
+	uint64_t phys_pdhigh = alloc_phys_page();
+
+	uint64_t vmm_store_phys = alloc_phys_page();
+
+	uint32_t *vmm_kspace = pae_kalloc(4096, 0x3, vmm_store_phys);
+
+	vmm *new_vmm = create_vmm(0, 0x10000, 0xc0000000, vmm_kspace);
+
+	process->vmm_obj = new_vmm;
+	logf("pdpt: %x, low_phys: %x\n", new_vmm->root_pdpt, phys_pdlow);
+
+	uint64_t *temp_page = (uint64_t *) TEMP_PAGE_VIRT;
+
+	pae_mmap(process->vmm_obj->root_pdpt, phys_pdlow, (uint32_t *) TEMP_PAGE_VIRT, 0x3);
+	asm ("movl %cr3, %eax\n\ 
+			movl %eax, %cr3"); // TLB Flush
+	memset(temp_page, 0, 4096);
+	temp_page[511] = phys_pdlow | 1;
+
+	pae_mmap(process->vmm_obj->root_pdpt, phys_pdmed, (uint32_t *) TEMP_PAGE_VIRT, 0x3);
+	asm ("movl %cr3, %eax\n\ 
+			movl %eax, %cr3"); // TLB Flush
+	temp_page[511] = phys_pdmed | 1;
+
+	pae_mmap(process->vmm_obj->root_pdpt, phys_pdhigh, (uint32_t *) TEMP_PAGE_VIRT, 0x3);
+	asm ("movl %cr3, %eax\n\
+			movl %eax, %cr3");
+	temp_page[511] = phys_pdhigh | 1;
+
+	pae_unmap((uint32_t *) temp_page);
+
+	new_vmm->pd_low = phys_pdlow;
+	new_vmm->pd_mid = phys_pdmed;
+	new_vmm->pd_high = phys_pdhigh;
+
+	set_current_vmm(new_vmm);
+	uint32_t *vmm_pspace = pae_alloc(4096, 0x3, (uint32_t) vmm_store_phys);
+	
+
+	uint32_t root_offset = (uint32_t) new_vmm->root - (uint32_t) new_vmm->vm_obj_store_addr; 
+	new_vmm->vm_obj_store_addr = (uint32_t) vmm_pspace + sizeof(vmm);
+	
+	// Set the root node 28 offset
+	new_vmm->root = (void *) (uint32_t) new_vmm->vm_obj_store_addr + root_offset;
+
+	process->context->esp = (uint32_t) alloc_stack(new_vmm) - 100;
+
+	process->context->ebx = 0xbeef;
+
+	process->vmm_obj = (vmm *) vmm_pspace;
+	logf("Vmm pspace at %x\n", vmm_pspace);
+	pae_unmap((uint32_t *) new_vmm);
+}
+
 void configure_page_directory(process_t *process)
 {
 	// I need to grab the root_pd first and then swap it out
-	uint32_t *phys_pd = alloc_phys_page();
-	uint32_t *vmm_store_phys = alloc_phys_page();
+	uint32_t phys_pd = alloc_phys_page();
+	uint32_t vmm_store_phys = alloc_phys_page();
 
-	uint32_t *vmm_kspace = page_kalloc(4096, 0x3, (uint32_t) vmm_store_phys);
-	uint32_t *pd_kspace = page_kalloc(4096, 0x3, (uint32_t) phys_pd);
+	uint32_t *vmm_kspace = pae_kalloc(4096, 0x3, (uint32_t) vmm_store_phys);
+	uint32_t *pd_kspace = pae_kalloc(4096, 0x3, (uint32_t) phys_pd);
 	
 	vmm *new_vmm = create_vmm(pd_kspace, 0x10000, 0xc0000000, vmm_kspace);
 
@@ -109,11 +168,10 @@ void configure_page_directory(process_t *process)
 	pd_kspace[1023] = (uint32_t) phys_pd | 3; // Recursive paging
 
 	set_current_vmm(new_vmm);
-	load_directory(phys_pd);
 
 
-	uint32_t *vmm_pspace = page_alloc(4096, 0x3, (uint32_t) vmm_store_phys);
-	uint32_t *pd_pspace = page_alloc(4096, 0x3, (uint32_t) phys_pd);
+	uint32_t *vmm_pspace = pae_alloc(4096, 0x3, (uint32_t) vmm_store_phys);
+	uint32_t *pd_pspace = pae_alloc(4096, 0x3, (uint32_t) phys_pd);
 
 	if (!vmm_pspace || !pd_pspace) {
 		panic("No vmm_space or pd_space allocated for process!\n");
@@ -128,8 +186,8 @@ void configure_page_directory(process_t *process)
 
 	process->context->esp = (uint32_t) alloc_stack(new_vmm) - 100;
 
-	process->context->cr3 = (uint32_t) phys_pd;
 	process->context->ebx = 0xbeef;
+
 }
 
 void kill_current_process()
@@ -144,10 +202,9 @@ void kill_current_process()
 process_t *create_process(char *name, void(*function)(void), void *arg, int privileged) 
 {
 	asm volatile ("cli");
-	load_directory((uint32_t *) (kernel_vmm->root_pd[1023] & ~0x3FF));
 	process_t *process = kalloc(sizeof(process_t));
-	logf("Creating process at %x\n", process);
-	memset(process, sizeof(process), 0);
+	logf("\nCreating process at %x\n", process);
+	memset(process, 0, sizeof(process));
 
 	logf("Process name: %s\n", name);
 	strncpy(process->name, name, P_NAME_MAX_LEN);
@@ -155,27 +212,31 @@ process_t *create_process(char *name, void(*function)(void), void *arg, int priv
 	logf("Process pid: %d\n", process->pid);
 	process->status = READY;
 	
-		// Allocate new context
+	// Allocate new context
 	process->context = kalloc(sizeof(cpu_status_t));
-	memset(process->context, sizeof(cpu_status_t), 0);
+	memset(process->context, 0, sizeof(cpu_status_t));
+
+	create_new_pdptes(process);
 	
-	configure_page_directory(process);
 //	process->context->ss = 0x10; // KERNEL_DS
-	
-	process->context->eflags = 0x202;
+	process->context->eflags = 0x200202;
 	process->context->cs = 0x08;
 	process->context->eip = (uint32_t)function;
 	process->next = NULL;
 	uint32_t init_cr0 = 0;
-	asm ("mov %%cr0, %0" : "=r" (init_cr0));
+	uint32_t init_cr3 = 0;
+	asm ("mov %%cr0, %0\n\
+			mov %%cr3, %1" : "=r" (init_cr0), "=r" (init_cr3));
 	process->context->cr0 = init_cr0;
+	process->context->cr2 = 0;
+	process->context->cr3 = init_cr3;
 
+	
 	if (privileged != PRIV_NO_ADD) {
 		add_process(process);
 	}
 	logf("Process context stored at %x\n", process->context);
 
-	load_directory((uint32_t *) (kernel_vmm->root_pd[1023] & ~0x3FF));
 	asm volatile ("sti");
 
 	return process;
@@ -212,6 +273,7 @@ cpu_status_t *schedule(cpu_status_t *context)
 
 	current_process->status = RUNNING;
 
+	//printf("Process context EIP %x, ESP %x, CR3: %x\n", current_process->context->eip, current_process->context->esp, current_process->context->cr3);
 
 	return current_process->context;
 }

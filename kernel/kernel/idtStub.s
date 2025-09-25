@@ -30,19 +30,21 @@ irq_stub_\num:
 .endm
 
 isr_frame_as:
+	pushl %ebp
 	pushl %eax
 	pushl %ebx
 	pushl %ecx
 	pushl %edx
 	pushl %esi
 	pushl %edi
+	pushl %ebp
 
 	movl %cr0, %eax
 	pushl %eax
 	movl %cr2, %eax
 	pushl %eax
 	movl %cr3, %eax
-
+	pushl %eax
 
 	call isr_handler
 	
@@ -53,12 +55,14 @@ isr_frame_as:
 	popl %eax
 	movl %eax, %cr0
 
+	popl %ebp
 	popl %edi
 	popl %esi
 	popl %edx
 	popl %ecx
 	popl %ebx
 	popl %eax
+	popl %ebp
 	addl $8, %esp
 	sti
 	iret
@@ -86,7 +90,6 @@ irq_frame:
 	pushl %esp # different because we are 32 bit i guess, so its all just pushed onto the stack
 	call irq_handler
 	movl (%eax), %ebx
-	movl %ebx, %cr3
 
 	movl 0xc(%eax), %esp
 	

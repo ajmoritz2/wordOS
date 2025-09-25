@@ -102,6 +102,7 @@ void init_font()
 void put_pixel(uint32_t x, uint32_t y, uint32_t color)
 {
 	uint8_t* pixel_addr = get_pixel_addr(x, y);
+	logf("Put pixel at addr %x\n", pixel_addr);
 
 	*pixel_addr = color >> 22 & 256;	
 	*(pixel_addr + 1) = color >> 16 & 22;	

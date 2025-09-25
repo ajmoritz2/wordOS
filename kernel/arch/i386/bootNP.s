@@ -181,7 +181,7 @@ idt_entry_loop_end:
 	
 	# Set up idt
 	lea 4f, %ecx # Loading the memory address of 4 into the register ecx
-	jmp 4f	# I believe the * means long jump and we are jumping to the effective address of 4
+	jmp *%ecx	# I believe the * means long jump and we are jumping to the effective address of 4
 	# Here we just made the virtual address to be in the 0xC0000000 range. We are still in the 0x100000 range physically! 
 .section .text
 4:

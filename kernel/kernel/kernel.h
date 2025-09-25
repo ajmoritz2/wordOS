@@ -1,7 +1,7 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
-#define KERNEL_VERSION  "0.0.4"
+#define KERNEL_VERSION  "0.0.5"
 
 #include <stdint.h>
 

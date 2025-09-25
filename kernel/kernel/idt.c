@@ -7,6 +7,7 @@
 #include "../drivers/apic.h"
 #include "../drivers/framebuffer.h"
 #include "../drivers/keyboard.h"
+#include "../programs/terminal.h"
 #include "scheduler.h"
 
 extern uint32_t* glob_lapic_addr;
@@ -78,11 +79,11 @@ void stack_trace()
 	uint32_t *ebp = 0;
 	asm volatile("mov %%ebp, %0" : "=r" (ebp)); 
 
-	int func_num = 0;
+	uint32_t func_num = 0;
 
 	while (ebp) {
 		
-		logf("Function (%d) at: %x\n", func_num++, *(ebp + 1));
+		printf("Function (%x) at: %x\n", *(ebp + 1), 1);
 
 		ebp = (uint32_t *) (*ebp);
 	}
@@ -112,6 +113,7 @@ uint8_t exc_print(struct isr_frame *frame)
 			break;
 		case 0x0E:
 			stack_trace();
+			printf("Memory fault encountered! %x\n", frame->cr2);
 			code = handle_exception(frame);
 			break;
 		case 27:
@@ -126,6 +128,14 @@ uint8_t exc_print(struct isr_frame *frame)
 	logf("\n");
 
 	return code;
+}
+
+void print_status_term(cpu_status_t* status)
+{
+	printf("EAX: %x, EBX: %x, ECX: %x, \nEDX: %x, EDI: %x, ESI: %x, \nCR3: %x, CR2: %x, CR0: %x, \nEIP: %x, CS: %x, EFLAGS: %x\n", \
+				status->eax, status->ebx, status->ecx, status->edx, status->edi, status->esi, status->cr3, status->cr2, \
+	   			status->cr0, status->eip, status->cs, status->eflags);	   
+
 }
 
 cpu_status_t* irq_handler(cpu_status_t* status) {
@@ -144,10 +154,12 @@ cpu_status_t* irq_handler(cpu_status_t* status) {
 		break;
 	case 0x80: // System calls for when that is added...
 		break;
+	default:
+		printf("Help me\n");
 	}
 	send_EOI(glob_lapic_addr); // THEY WILL QUEUE UP IF THIS ISN'T HERE!
 							   //
-	//status->eip = (uint32_t)&isr_stub_26; // EXECUTE ORDER 66
+//	status->eip = (uint32_t)&isr_stub_26; // EXECUTE ORDER 66
 							   
 	return status;
 }
@@ -160,7 +172,7 @@ void isr_handler(struct isr_frame frame)
 		}
 	}
 
-	//logf("Silly interrupt happened I guess!\n");
+	logf("Silly interrupt happened I guess!\n");
 	asm volatile("cli\n\
 			hlt");
 }

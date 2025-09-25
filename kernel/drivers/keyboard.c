@@ -4,11 +4,15 @@
 #include "../programs/terminal.h"
 #include "../memory/heap.h"
 #include "../memory/string.h"
+#include "ps2.h"
 #include <stdint.h>
 
 
 #define NORMAL_STATE	0
 #define PREFIX_STATE	1
+
+#define DATA_PORT 0x60
+#define CMD_PORT 0x64
 
 // TODO: make this more robust, as in actually fix it
 
@@ -101,8 +105,107 @@ void handle_keychange()
 	// We will have the program handle shifts and whatnot. Not my problem here.
 }
 
+void init_ps2_controller()
+{
+	uint8_t dual = 0;
+	// We will pretend it exists...
+	// Disables the devices
+	outportb(CMD_PORT, 0xAD);
+	outportb(CMD_PORT, 0xA7);
+	io_wait();
+	inportb(DATA_PORT);
+	io_wait();
+	uint32_t status = inportb(CMD_PORT);
+	printf("Status is %x\n", status);
+	outportb(CMD_PORT, 0x20);
+	io_wait();
+	uint32_t config = inportb(DATA_PORT);
+	io_wait();
+	config &= 0xae; // Clear bits 0, 4, and 6
+	ps2_send_dbyte(0x60, (uint8_t) config);
+	ps2_send_command(0x20);
+
+	// SELF-TEST
+	ps2_send_command(0xAA);
+	if (ps2_get_responce() != 0x55)
+		panic("PS2 Test failed!\n");
+	printf("PS2 Test succeeded\n");
+
+	// Determine channel count
+	ps2_send_command(0xA8);
+	ps2_send_command(0x20);
+	uint8_t dchannel = ps2_get_responce();
+	if (!(dchannel & (1 << 5))) {
+
+		ps2_send_command(0xA7);
+		dchannel &= 0xdd;
+		ps2_send_dbyte(0x60, dchannel);
+		printf("Dual channel ps2, initialized\n");
+		dual = 1;
+	} else {
+		printf("Single channel ps2\n");
+	}
+
+	// Interface tests
+	uint8_t total_ports = 0;
+	ps2_send_command(0xAB);
+	if (!ps2_get_responce())
+		total_ports++;
+	if (dual) {
+		ps2_send_command(0xA9);
+		if (!ps2_get_responce())
+			total_ports++;
+	}
+	
+	if (!total_ports) {
+		printf("PS/2 Non-functional\n");
+		return;
+	}
+
+	printf("Total working ps/2 ports: %x\n", total_ports);
+
+	ps2_send_command(0xAE);
+	if (dual) {
+		ps2_send_command(0xA8);
+
+		dchannel |= 2;
+	}
+
+	dchannel |= 1;
+	ps2_send_dbyte(0x60, dchannel);
+
+	// Reset devices
+	ps2_send_byte_port1(0xFF);
+	ps2_send_byte_port1(0xFF);
+	// I have to double send.... for some reason
+
+
+	uint8_t resp = ps2_get_responce_to(3200000);
+	if (resp && resp != 0xFC) {
+		resp = ps2_get_responce_to(32);
+		resp = ps2_get_responce_to(32);
+		printf("Device on ps/2 id: %x\n", resp);
+	} else {
+		panic("Port not populated...\n");
+	}
+
+	if (dual) {
+		ps2_send_byte_port2(0xFF);
+		ps2_send_byte_port2(0xFF);
+		resp = ps2_get_responce_to(3200000);
+		if (resp && resp != 0xFC) {
+			resp = ps2_get_responce_to(32);
+			resp = ps2_get_responce_to(32);
+			printf("Device on ps/2 2 id: %x\n", resp);
+		} else {
+			panic("Port not populated...\n");
+		}
+	}
+}
+
 void init_keyboard()
 {
+	init_ps2_controller();
 	outportb(0x64, 0x20);
 	uint8_t trans = inportb(0x60);
 	io_wait();
@@ -128,5 +231,6 @@ void init_keyboard()
 	uint8_t keyboard_reg = 0x12;	
 	uint32_t ioapic_data = 50; // 50 is the vector
 	write_ioapic_register(keyboard_reg, ioapic_data); // We set up the APIC keyboard reg before init keyboard IN KERNELC
+	write_ioapic_register(keyboard_reg + 1, 0); 
 	printf("Keyboard Function: %t30OK!%t10\n");
 }

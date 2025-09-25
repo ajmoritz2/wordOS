@@ -4,4 +4,4 @@ make
 ./iso.sh
 ./clean.sh
 echo ---------------------------- SYSTEM STARTING -----------------------------------
-qemu-system-i386 -d int -no-reboot -no-shutdown -serial stdio -cdrom wordos.iso -m 256M
+qemu-system-x86_64 -M type=pc-q35-9.2 -cpu Haswell-v3 -d int -no-reboot -no-shutdown -serial stdio -cdrom wordos.iso -m 256M

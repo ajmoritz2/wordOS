@@ -37,4 +37,8 @@ void disable_pic();
 void init_apic();
 struct cpuid_status get_cpuid(int eax_val);
 
+void write_ioapic_register(uint32_t reg, uint32_t data);
+uint32_t read_ioapic_register(uint32_t reg);
+void print_test_try();
+
 #endif

@@ -122,6 +122,9 @@ void logf(char *string, ...)
 		if (*string == '%') {
 			*string++;
 			switch (*string) {
+				case 'l':
+					print_hex(va_arg(params, uint64_t));
+					break;
 				case 'x':
 					print_hex(va_arg(params, uint32_t));
 					break;
@@ -225,11 +228,11 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	init_pae(kvmm);
 	init_framebuffer();
 
-	uint32_t *test = (uint32_t *)0xCC004000;
-	*test = 0xfffffff;
 	put_pixel(100, 100, 0xffffffff);
 
+
 	init_font();
+	fb_put_glyph('A', 0, 0, 0xffffffff, 0x00000000, 2);
 	// Can use text now!
 
 	logf("KERNEL STARTING LOC: %x KERNEL ENDING LOC: %x SIZE: %x\n", &_kernel_start, &_kernel_end, kernel_size); 
@@ -244,7 +247,7 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	set_initial_lapic_timer_count(0); // Disable timer for now 
 	init_scheduler();
 	start_terminal();
-	process_t *new_process = create_process("Test", &test_func, 0, 1);
+//	process_t *new_process = create_process("Test", &test_func, 0, 1);
 	set_initial_lapic_timer_count(0xff000); // Quantum of time for scheduling
 	while (1) {
 		terminal_loop();

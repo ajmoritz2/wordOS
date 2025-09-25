@@ -30,6 +30,7 @@ OBJS+=\
 	 $(DRIVERDIR)/timer.o \
 	 $(DRIVERDIR)/keyboard.o \
 	 $(DRIVERDIR)/framebuffer.o \
+	 $(DRIVERDIR)/ps2.o		\
 	 $(KERNELDIR)/scheduler.o \
 
 include kernel/programs/local.mk
