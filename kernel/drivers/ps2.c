@@ -5,6 +5,7 @@
  */
 
 #include "../kernel/kernel.h"
+#include "../programs/terminal.h"
 #include "ps2.h"
 #include <stdint.h>
 
