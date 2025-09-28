@@ -11,6 +11,7 @@ void init_heap()
 {
 	// Will need a method to differentiate heaps later
 	heap_start = page_kalloc(HEAP_START_SIZE, 0x3, 0);
+	memset(heap_start, 0, HEAP_START_SIZE);
 	cur_heap_pos = (uintptr_t *) heap_start;
 	logf("Heap initialized\n");
 }
@@ -77,9 +78,6 @@ void kfree(void *mem)
 {
 	// Size does NOT include sizeof(struct mem_header)
 	struct mem_header *node = (struct mem_header *) (mem - sizeof(struct mem_header));
-	logf("MEMSETING %x\n", node->size);
-	memset(node + 1, 0, node->size);
-
 	node->status = HEAP_FREE;
 	struct mem_header *node_next = node->next;
 	struct mem_header *node_prev = node->prev;

@@ -393,6 +393,7 @@ void parse_user_chars()
 {
 	char parse_index = 2;
 	char *command = (char *) kalloc(max_char_x);
+	memset(command, 0, max_char_x);
 	logf("Aquired command at %x\n", command);
 
 	while (user_chars[parse_index]) {
@@ -405,7 +406,8 @@ void parse_user_chars()
 		parse_index++;
 	}
 
-	// TODO: Make these run the script with said name
+
+
 	if (strcmp("version", command, strlen("version"))){
 		printf("WordOS kernel version: %t30%s%t10\n", KERNEL_VERSION);
 	} else if (strcmp("woof", command, strlen("woof"))){
@@ -414,6 +416,8 @@ void parse_user_chars()
 	} else {
 		printf("Command %t20%s%t10 unknown.\n", command);
 	}
+
+	// TODO: Make these run the script with said name
 
 	kfree(command);
 }
@@ -479,6 +483,7 @@ void init_terminal()
 	text_buffer = (char *)kalloc((max_char_x * max_char_y) + 1);
 	memset(text_buffer, 0, max_char_x * max_char_y + 1);
 	user_chars = (char *) kalloc(max_char_x + 1);
+	memset(user_chars, 0, max_char_x + 1);
 	user_chars[0] = '>';
 	user_chars[1] = ' ';
 
