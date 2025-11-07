@@ -11,11 +11,14 @@
 #include "scheduler.h"
 
 extern uint32_t* glob_lapic_addr;
+extern process_t* current_process; 
 
 __attribute__((aligned(0x0010)))
 static idt_entry idt[256];
 
 static idtr_t idtr;
+uint32_t kesp = 0;
+uint32_t pesp = 0;
 
 void idt_set_gate(uint8_t num, uint32_t base, uint8_t flags)
 {
@@ -65,12 +68,15 @@ void init_idt()
 	idt_set_gate(0x1E, (uint32_t)isr_stub_30, 0x80 | 0x0E);
 	idt_set_gate(0x1F, (uint32_t)isr_stub_31, 0x80 | 0x0E);
 
-	idt_set_gate(0x30, (uint32_t)irq_stub_48, 0x80 | 0x0E); // LAPIC ID 0
-	idt_set_gate(0x31, (uint32_t)irq_stub_49, 0x80 | 0x0E); // PIT
-	idt_set_gate(0x32, (uint32_t)irq_stub_50, 0x80 | 0x0E); // Keyboard
+	idt_set_gate(0x30, (uint32_t)irq_stub_48, 0x80 | 0x0F); // LAPIC ID 0
+	idt_set_gate(0x31, (uint32_t)irq_stub_49, 0x80 | 0x0F); // PIT
+	idt_set_gate(0x32, (uint32_t)irq_stub_50, 0x80 | 0x0F); // Keyboard
+	idt_set_gate(0x80, (uint32_t)irq_stub_128, 0x80 | 0x0F); // Syscall
 
 	log_to_serial("Loaded IDT\n");
 	asm volatile ("lidt %0" : : "m"(idtr)); // Loading new IDT
+	asm volatile ("mov %%esp, %0" : "=m"(kesp));
+	logf("Kernel ESP: %x\n", kesp);
 	asm volatile ("sti"); // Interupt flag
 }
 
@@ -80,18 +86,38 @@ void stack_trace()
 	asm volatile("mov %%ebp, %0" : "=r" (ebp)); 
 
 	uint32_t func_num = 0;
-
 	while (ebp) {
 		
-		printf("Function (%x) at: %x\n", *(ebp + 1), 1);
+		logf("Function (%x) at: %x\n", *(ebp + 1), 1);
 
 		ebp = (uint32_t *) (*ebp);
 	}
 }
 
+void kernel_stack_fn(int num)
+{
+	switch (num) {
+		case 4:
+			char *name;
+			void (*function)(void);
+			void *arg;
+			int priviledged;
+
+			asm volatile ("mov %%eax, %0\n\
+							mov %%ebx, %1\n\
+							mov %%ecx, %2\n\
+							mov %%edx, %3" : : "m"(name), "m"(function), "m"(arg), "m"(priviledged));
+			create_process(name, function, arg, priviledged);
+			logf("Process creation\n");
+			break;
+	}
+
+	send_EOI(glob_lapic_addr); // THEY WILL QUEUE UP IF THIS ISN'T HERE!	
+}
+
 uint8_t exc_print(struct isr_frame *frame)
 {
-	logf("EAX: %x, EBX: %x, ECX: %x, \nEDX: %x, EDI: %x, ESI: %x, \nCR3: %x, CR2: %x, CR0: %x, \nEIP: %x, CS: %x, EFLAGS: %x\n", \
+//	printf("EAX: %x, EBX: %x, ECX: %x, \nEDX: %x, EDI: %x, ESI: %x, \nCR3: %x, CR2: %x, CR0: %x, \nEIP: %x, CS: %x, EFLAGS: %x\n", \
 				frame->eax, frame->ebx, frame->ecx, frame->edx, frame->edi, frame->esi, frame->cr3, frame->cr2, \
 	   			frame->cr0, frame->eip, frame->cs, frame->eflags);	   
 	uint32_t code = 1;
@@ -112,8 +138,13 @@ uint8_t exc_print(struct isr_frame *frame)
 			code = 1;
 			break;
 		case 0x0E:
-			stack_trace();
-			printf("Memory fault encountered! %x\n", frame->cr2);
+		//	set_initial_lapic_timer_count(0); // Quantum of time for scheduling
+//			stack_trace();
+			printf("Memory fault encountered! %x at PID->%x\n", frame->cr2);
+
+			logf("EAX: %x, EBX: %x, ECX: %x, \nEDX: %x, EDI: %x, ESP: %x, \nCR3: %x, CR2: %x, CR0: %x, \nEIP: %x, CS: %x, EFLAGS: %x\n", \
+				frame->eax, frame->ebx, frame->ecx, frame->edx, frame->edi, frame->esp, frame->cr3, frame->cr2, \
+	   			frame->cr0, frame->eip, frame->cs, frame->eflags);	   
 			code = handle_exception(frame);
 			break;
 		case 27:
@@ -132,16 +163,19 @@ uint8_t exc_print(struct isr_frame *frame)
 
 void print_status_term(cpu_status_t* status)
 {
-	printf("EAX: %x, EBX: %x, ECX: %x, \nEDX: %x, EDI: %x, ESI: %x, \nCR3: %x, CR2: %x, CR0: %x, \nEIP: %x, CS: %x, EFLAGS: %x\n", \
-				status->eax, status->ebx, status->ecx, status->edx, status->edi, status->esi, status->cr3, status->cr2, \
+	logf("EAX: %x, EBX: %x, ECX: %x, \nEDX: %x, EDI: %x, ESP: %x, \nCR3: %x, CR2: %x, CR0: %x, \nEIP: %x, CS: %x, EFLAGS: %x\n", \
+				status->eax, status->ebx, status->ecx, status->edx, status->edi, status->esp, status->cr3, status->cr2, \
 	   			status->cr0, status->eip, status->cs, status->eflags);	   
 
 }
 
 cpu_status_t* irq_handler(cpu_status_t* status) {
 	cpu_status_t* ret_stat = status;
-//	logf("Status: %x\n", status->cr3);
 	int num = status->isr_no;
+	if (status->esp > 0xc0000000) {
+		//logf("%x\n", status->esp);
+		kesp = status->esp;
+	}
 	switch (num) {
 	case 0x30: // LAPIC Timer
 		status = handle_schedule(status);
@@ -155,12 +189,12 @@ cpu_status_t* irq_handler(cpu_status_t* status) {
 	case 0x80: // System calls for when that is added...
 		break;
 	default:
-		printf("Help me\n");
+		logf("TEST %x\n", num);
+		break;
 	}
 	send_EOI(glob_lapic_addr); // THEY WILL QUEUE UP IF THIS ISN'T HERE!
 							   //
 //	status->eip = (uint32_t)&isr_stub_26; // EXECUTE ORDER 66
-							   
 	return status;
 }
 

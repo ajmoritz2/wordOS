@@ -132,11 +132,18 @@ void set_current_vmm(vmm* new_vmm)
 	// Kernel page will NEVER change
 	current_vmm = new_vmm;
 
-	if (current_vmm->root_pdpt) {
+	if (current_vmm->root_pdpt && current_vmm->pd_low) {
 		current_vmm->root_pdpt[0] = current_vmm->pd_low | 1;
 		current_vmm->root_pdpt[1] = current_vmm->pd_mid | 1;
 		current_vmm->root_pdpt[2] = current_vmm->pd_high | 1;
 	}
+
+
+	asm ("movl %cr3, %eax\n\
+			movl %eax, %cr3");
+
+	uint32_t esp = 0;
+	asm ("movl %%esp, %0" : : "m"(esp)); 
 
 }
 
@@ -252,6 +259,7 @@ void *alloc_stack(vmm *process_vmm)
 	current_vmm = process_vmm;
 
 	void *stack_top = pae_alloc(0x1000, 0x3, 0);	// USER PAGE EXPERIMENT!
+	logf("Stack located at virt addr: %x\n", stack_top);
 
 	return stack_top + 0xFFF;
 }

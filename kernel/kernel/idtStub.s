@@ -68,6 +68,7 @@ isr_frame_as:
 	iret
 
 irq_frame:
+	
 	pushl %ebp
 	pushl %eax
 	pushl %ebx
@@ -89,10 +90,14 @@ irq_frame:
 
 	pushl %esp # different because we are 32 bit i guess, so its all just pushed onto the stack
 	call irq_handler
+	
+
 	movl (%eax), %ebx
 
 	movl 0xc(%eax), %esp
-	
+	movl %cr3, %ecx
+	movl %ecx, %cr3
+
 	pushl 0x3c(%eax) # EFLAGS 
 	pushl 0x38(%eax) # CS
 	pushl 0x34(%eax) # EIP
@@ -102,6 +107,7 @@ irq_frame:
 	movl 0x8(%eax), %ebx
 	movl %ebx, %cr0
 
+
 	movl 0x10(%eax), %edi	
 	movl 0x14(%eax), %esi	
 	movl 0x18(%eax), %edx	
@@ -109,8 +115,87 @@ irq_frame:
 	movl 0x20(%eax), %ebx	
 	movl 0x28(%eax), %ebp
 	popl %eax
-	sti
 	iret
+
+process_switch_frame:
+	# Enter here with stack stop -> %esp, %old_esp -> %eax
+	# (%old_esp) -> %eax
+	pushl 0xc(%eax)
+	pushl 0x8(%eax)
+	pushl 0x4(%eax)
+	pushl $0
+	pushl $0x30
+	pushl %ebp
+	pushl (%eax) # True EAX val
+	pushl %ebx
+	pushl %ecx
+	pushl %edx
+	pushl %esi
+	pushl %edi
+	addl $0x10, %eax
+	pushl %eax	
+
+	movl %cr0, %eax
+	pushl %eax
+	movl %cr2, %eax
+	pushl %eax
+	movl %cr3, %eax
+	pushl %eax 
+
+	pushl %esp
+	
+	call irq_handler	
+
+	movl 0xc(%eax), %esp
+	movl %cr3, %ecx
+	movl %ecx, %cr3
+
+	pushl 0x3c(%eax) # EFLAGS 
+	pushl 0x38(%eax) # CS
+	pushl 0x34(%eax) # EIP
+	pushl 0x24(%eax) # eax
+	movl 0x4(%eax), %ebx
+	movl %ebx, %cr2
+	movl 0x8(%eax), %ebx
+	movl %ebx, %cr0
+
+
+	movl 0x10(%eax), %edi	
+	movl 0x14(%eax), %esi	
+	movl 0x18(%eax), %edx	
+	movl 0x1c(%eax), %ecx	
+	movl 0x20(%eax), %ebx	
+	movl 0x28(%eax), %ebp
+	popl %eax
+	iret
+	
+
+	
+
+.global irq_stub_128
+.type irq_stub_128, @function
+irq_stub_128:
+	cli
+	movl %esp, pesp
+	movl kesp, %esp
+	pushl $4
+	call kernel_stack_fn
+	addl $0x4, %esp
+	movl %esp, kesp
+	movl pesp, %esp
+	movl %esp, %eax
+	iret
+
+.global irq_stub_48
+.type irq_stub_48, @function
+irq_stub_48:	
+	cli
+	pushl %eax
+	movl %esp, %eax
+	movl $stack_top, %esp
+	jmp process_switch_frame
+	
+
 
 isr_no_err_stub 0
 isr_no_err_stub 1
@@ -145,6 +230,5 @@ isr_no_err_stub 29
 isr_err_stub    30
 isr_no_err_stub 31
 
-irq_stub 48
 irq_stub 49
 irq_stub 50

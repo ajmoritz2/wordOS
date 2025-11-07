@@ -52,6 +52,7 @@ void fb_put_glyph(char glyph, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, 
 		uint8_t* pixel_addr = get_pixel_addr(x, y);
 		for(int j = 7; j >= 0; j--) {
 			if (*gaddr & 1 << j) {
+				
 				fill_square(pixel_addr, size, size, fgred, fggreen, fgblue, 0x0);
 			} else {
 				fill_square(pixel_addr, size, size, bgred, bggreen, bgblue, 0x0);

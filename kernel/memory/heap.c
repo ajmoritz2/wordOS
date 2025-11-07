@@ -3,6 +3,7 @@
 #include "heap.h"
 #include "../kernel/kernel.h"
 #include "../programs/terminal.h"
+#include "../utils/asm_tools.h"
 
 uintptr_t *heap_start;
 uintptr_t *cur_heap_pos;
@@ -32,7 +33,6 @@ void *kalloc(size_t size)
 	// The first -1 makes sure we dont bring over 0x20 threshold while the second makes us grab all bits BUT the important ones
 	// For the bitwise roundup to work, it must be to a power of 2
 	size = (0x20 - 1 + size ) & ~(0x20 - 1);
-	logf("Size of memory alloced %x\n", size);
 	struct mem_header *cur_node = (struct mem_header *) heap_start;	
 	struct mem_header *past_node = 0;
 
@@ -40,13 +40,14 @@ void *kalloc(size_t size)
 		if (cur_node->size >= size && cur_node->status == HEAP_FREE) {
 			// We only need to worry about splitting if it isnt a new node
 			if (cur_node->size - size >= HEAP_MIN_SPLIT_SIZE) {
-				struct mem_header *split_node = (struct mem_header *) ((uint8_t*) cur_node + cur_node->size + sizeof(struct mem_header));
+				struct mem_header *split_node = (struct mem_header *) ((uint8_t*) cur_node + size + sizeof(struct mem_header));
 				split_node->status = HEAP_FREE;
 				split_node->size = cur_node->size - size - sizeof(struct mem_header);
 				split_node->next = cur_node->next;
 				split_node->prev = cur_node->prev;
 				cur_node->next = split_node;
-				logf("Split heap node: %x with size %x\n", split_node, size);
+				cur_node->size = size;
+				logf("Split heap node: %x with size %x\n", split_node, cur_node->size);
 			}
 			
 			cur_node->status = HEAP_USED;
@@ -58,7 +59,7 @@ void *kalloc(size_t size)
 		cur_node = (struct mem_header *)((uint8_t *)cur_node + (cur_node->size + sizeof(struct mem_header)));
 	}
 
-
+	
 	cur_node = (struct mem_header *) cur_heap_pos;
 	cur_node->prev = past_node;
 	if (past_node)
