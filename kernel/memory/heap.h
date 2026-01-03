@@ -19,5 +19,6 @@ void init_heap();
 
 void *kalloc(size_t size);
 void kfree(void *mem);
+void *rekalloc(void *ptr, size_t size);
 
 #endif

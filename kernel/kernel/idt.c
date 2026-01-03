@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include "idt.h"
 #include "kernel.h"
+#include "ahci/ahci.h"
 #include "../memory/paging.h"
 #include "../memory/string.h"
 #include "../drivers/apic.h"
@@ -69,8 +70,9 @@ void init_idt()
 	idt_set_gate(0x1F, (uint32_t)isr_stub_31, 0x80 | 0x0E);
 
 	idt_set_gate(0x30, (uint32_t)irq_stub_48, 0x80 | 0x0F); // LAPIC ID 0
-	idt_set_gate(0x31, (uint32_t)irq_stub_49, 0x80 | 0x0F); // PIT
+	idt_set_gate(0x31, (uint32_t)irq_stub_49, 0x80 | 0x0E); // PIT
 	idt_set_gate(0x32, (uint32_t)irq_stub_50, 0x80 | 0x0F); // Keyboard
+	idt_set_gate(0x33, (uint32_t)irq_stub_51, 0x80 | 0x0F); // AHCI Write
 	idt_set_gate(0x80, (uint32_t)irq_stub_128, 0x80 | 0x0F); // Syscall
 
 	log_to_serial("Loaded IDT\n");
@@ -88,7 +90,7 @@ void stack_trace()
 	uint32_t func_num = 0;
 	while (ebp) {
 		
-		logf("Function (%x) at: %x\n", *(ebp + 1), 1);
+		//printf("Function (%x) at: %x\n", *(ebp + 1), 1);
 
 		ebp = (uint32_t *) (*ebp);
 	}
@@ -138,9 +140,9 @@ uint8_t exc_print(struct isr_frame *frame)
 			code = 1;
 			break;
 		case 0x0E:
-		//	set_initial_lapic_timer_count(0); // Quantum of time for scheduling
-//			stack_trace();
-			printf("Memory fault encountered! %x at PID->%x\n", frame->cr2);
+			set_initial_lapic_timer_count(0); // Quantum of time for scheduling
+			stack_trace();
+			printf("Memory fault encountered! %x\n", frame->cr2);
 
 			logf("EAX: %x, EBX: %x, ECX: %x, \nEDX: %x, EDI: %x, ESP: %x, \nCR3: %x, CR2: %x, CR0: %x, \nEIP: %x, CS: %x, EFLAGS: %x\n", \
 				frame->eax, frame->ebx, frame->ecx, frame->edx, frame->edi, frame->esp, frame->cr3, frame->cr2, \
@@ -170,6 +172,7 @@ void print_status_term(cpu_status_t* status)
 }
 
 cpu_status_t* irq_handler(cpu_status_t* status) {
+	logf("IDT FNC\n");
 	cpu_status_t* ret_stat = status;
 	int num = status->isr_no;
 	if (status->esp > 0xc0000000) {
@@ -186,6 +189,9 @@ cpu_status_t* irq_handler(cpu_status_t* status) {
 	case 0x32:
 		handle_keychange();
 		break;
+	case 0x33: // AHCI Vector
+		handle_ahci_interrupt();		
+		break;
 	case 0x80: // System calls for when that is added...
 		break;
 	default:
@@ -200,6 +206,7 @@ cpu_status_t* irq_handler(cpu_status_t* status) {
 
 void isr_handler(struct isr_frame frame)
 {
+	logf("IDT FNC\n");
 	if (frame.isr_no < 32) {
 		if (exc_print(&frame) == 0) {
 			return;

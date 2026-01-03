@@ -1,5 +1,6 @@
 #ifndef TERMINAL_PROG_C
 #define TERMINAL_PROG_C
+#include <stdint.h>
 
 uint8_t is_term_ready();
 void init_terminal();

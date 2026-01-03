@@ -78,6 +78,7 @@ extern void isr_stub_31(void);
 extern void irq_stub_48(void);
 extern void irq_stub_49(void);
 extern void irq_stub_50(void);
+extern void irq_stub_51(void);
 
 extern void irq_stub_128(void);
 

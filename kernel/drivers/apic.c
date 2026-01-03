@@ -11,6 +11,9 @@
 #include "../memory/vmm.h"
 #include "../multiboot/mb_parse.h"
 #include "../programs/terminal.h"
+#include "../acpi/tables.h"
+#include "../acpi/acpi.h"
+#include "../utils/asm_tools.h"
 #include "keyboard.h"
 #include "apic.h"
 
@@ -40,48 +43,6 @@ uint32_t volatile* glob_ioapic_addr = 0;
 uint32_t ticks_per_ms = 0;
 
 uint32_t calibrating = 0;
-struct MADTEntryType2 test_try = {2, 2, 2, 2};
-
-// Assembly Instructions START
-uint32_t* get_apic_addr()
-{
-	// TODO: change this to a get_msr function instead...
-	uint32_t msr = 0x1b;
-	uint32_t eax = 0; 
-	uint32_t edx = 0;
-	asm volatile ("mov %[msr], %%ecx \n \
-			rdmsr \n \
-			mov %%eax, %[eax] \n \
-			mov %%edx, %[edx]" 
-			: [eax] "=m"(eax),
-			  [edx] "=m"(edx) 
-			: [msr] "r"(msr));
-	return (uint32_t*)(eax & 0xFFFFF000);
-}
-
-struct cpuid_status get_cpuid(int eax_val)
-{
-	uint32_t eax = 0, ebx = 0, ecx = 0, edx = 0;
-
-	asm volatile ("mov %[eax_val], %%eax \n \
-					cpuid \n \
-					mov %%eax, %[eax] \n \
-					mov %%ebx, %[ebx] \n \
-				   	mov %%ecx, %[ecx] \n \
-					mov %%edx, %[edx]"
-					: [eax] "=m"(eax),
-						[ebx] "=m"(ebx),
-						[ecx] "=m"(ecx),
-						[edx] "=m"(edx)
-					: [eax_val] "r"(eax_val));
-
-	struct cpuid_status ret_val = {eax, ebx, ecx, edx};
-
-	logf("CPU_ID: %x EAX EBX ECX EDX\n%x\n%x\n%x\n%x\nEND...\n", eax_val, eax, ebx, ecx, edx);	
-
-	return ret_val;
-}
-
 
 // IOAPIC Baloney
 uint32_t read_ioapic_register(uint32_t reg)
@@ -102,13 +63,13 @@ void write_ioapic_register(uint32_t reg, uint32_t data)
 
 uint8_t ioapic_pit_irq()
 {
-	uint8_t count = 1;
+	uint8_t count = 0;
 
 	struct MADTEntryType2* candidate = NULL;
 
-	for (candidate = (struct MADTEntryType2*)parse_MADT(2, count); 
+	for (candidate = (struct MADTEntryType2*)get_madt_entry(2, count); 
 			candidate != NULL; 
-			candidate = (struct MADTEntryType2*) parse_MADT(2, count), count++) {
+			candidate = (struct MADTEntryType2*) get_madt_entry(2, count), count++) {
 		if (candidate->BusSource == 0)
 			break;
 	}
@@ -120,8 +81,9 @@ uint8_t ioapic_pit_irq()
 
 void init_ioapic()
 {
-	struct MADTEntryType1* ioapicStruct = (struct MADTEntryType1*)parse_MADT(1, 1);
-	
+	struct MADTEntryType1* ioapicStruct = (struct MADTEntryType1*)get_madt_entry(1, 0); // ID 1, count 0
+	logf("IOAPIC ADDR: %x\n", ioapicStruct->IOAPICAddr);
+
 	glob_ioapic_addr = page_kalloc(1024, 0x113, ioapicStruct->IOAPICAddr); // I Pray strong Uncacheable
 
 	// Set up PIT timer on the ioapic
@@ -129,19 +91,9 @@ void init_ioapic()
 	write_ioapic_register(pit_reg, 49); // Setting the PIT irq vec
 	write_ioapic_register(pit_reg+1, 0);
 
-	struct MADTEntryType2 *ISOS = (struct MADTEntryType2 *) parse_MADT(2, 3);
-
-	if (ISOS) {
-		test_try = *ISOS;
-		logf("Test try at %x\n", &test_try);
-	}
 
 }
 
-void print_test_try()
-{
-	printf("BUS: %x\nSource: %x\nGSI: %x\nFlags: %x\n", test_try.BusSource, test_try.IRQSource, test_try.GSI, test_try.Flags);
-}
 // LAPIC Stuff
 // TIMER Instructions START
 
@@ -187,7 +139,8 @@ void send_EOI(void* apic_addr)
 void init_apic()
 {
 	logf("\n----Starting APIC Initializations----\n");
-	glob_lapic_addr = (uint32_t*)page_kalloc(4096, 0x3, (uint32_t)get_apic_addr());; // TODO: Create a global core struct (stated earlier as well)
+	uint32_t msr_apic_addr = read_msr(0x1b) & 0xFFFFF000;
+	glob_lapic_addr = (uint32_t*)page_kalloc(4096, 0x3, msr_apic_addr); // TODO: Create a global core struct (stated earlier as well)
 	uint32_t volatile* spur_vec = (uint32_t*) ((uint32_t)glob_lapic_addr + SPUR_VEC);
 	*spur_vec = *spur_vec | 0x1FF; // Map vec to 0xF0 entry and enable
 								   //

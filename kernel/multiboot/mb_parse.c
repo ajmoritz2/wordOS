@@ -15,6 +15,8 @@
 #include "../kernel/kernel.h"
 #include "../drivers/framebuffer.h"
 #include "../programs/terminal.h"
+#include "../acpi/tables.h"
+#include "../acpi/acpi.h"
 #include <stdint.h>
 
 extern vmm* current_vmm;
@@ -78,29 +80,6 @@ void init_framebuffer() {
 	fb_set_height(fb->common.framebuffer_height);
 }
 
-// MADT Parsing
-void* parse_MADT(uint8_t entry_id, uint8_t count)
-{
-	struct ACPISDTHeader* madt = (struct ACPISDTHeader*) get_sdt_by_signature("APIC");
-	
-	uint16_t offset = sizeof(struct ACPISDTHeader) + 8; // The +8 is for the 8 bytes of other data here
-	uint8_t* mem_p = (uint8_t*) ((uint32_t) madt + offset);
-	uint8_t found_count = 0;
-	while (offset <= madt->Length) {
-		struct MADTEntryHead* entry_head = (struct MADTEntryHead*) mem_p;
-		if (entry_head->EntryType == entry_id) {
-			found_count++;
-			if (found_count == count)
-				return (void*)(mem_p + 2);
-		}
-		offset+=entry_head->Length;
-	mem_p+=entry_head->Length;
-	}
-	
-	logf("MADT entry with id %d NOT FOUND!\n", entry_id);
-	return NULL;	
-}
-
 // ACPI TABLES BALONEY
 uint8_t validate_RSDP(char *byte_array, size_t size) {
        	uint32_t sum = 0;
@@ -117,15 +96,18 @@ void* get_sdt_by_signature(char* signature)
 		uint32_t NextSDT[(rsdt_addr->Length - sizeof(struct ACPISDTHeader)) / 4];
 	};
 	struct RSDT* rsdt = (struct RSDT *) rsdt_addr;
+	logf("rsdt: %x\n", rsdt);
 
 	int entries = (rsdt->h.Length - sizeof(struct ACPISDTHeader)) / 4;
-	struct ACPISDTHeader* potential;
+	struct ACPISDTHeader* potential = 0;
 	for (int i = 0; i < entries; i++) {
 		struct ACPISDTHeader* potential = (struct ACPISDTHeader *) rsdt->NextSDT[i];
 		memory_map(current_vmm->root_pd, (uint32_t*) PGROUNDDOWN((uint32_t) potential), \
 				(uint32_t*) PGROUNDDOWN((uint32_t) potential), 0x3);
-		if (strcmp(signature, potential->Signature, 4))
+		if (strcmp(signature, potential->Signature, 4)) {
+			logf("Potential: %x\n", potential);
 			return (void*) potential;
+		}
 	}
 
 
@@ -141,9 +123,18 @@ void init_rsdt_v1()
 	// Super weird hack to get the struct for the RSDP
 	struct RSDPDescriptor* rsdp_d = (struct RSDPDescriptor*) old_acpi->rsdp;
 	logf("RSDP Found at %x\n", rsdp_d->RsdtAddress);
-	if (validate_RSDP((char *) rsdp_d, sizeof(rsdp_d))) {
-		logf("RSDP NOT VALIDATED >><< \n");
-		return;
+	logf("RSDP Revision %x\n", rsdp_d->Checksum);
+	if (rsdp_d->Revision >= 2) {
+		if (!validate_table((struct ACPISDTHeader *) rsdp_d)) {
+			panic("XSDT NOT VALIDATED \n");
+		}
+
+		panic("Xsdt validated :^) (No support)\n");
+	} else {
+		if (validate_RSDP((char *) rsdp_d, 19)) { // Needs to be hardcode 20 for legacy
+			panic("RSDP NOT VALIDATED >><< \n");
+			return;
+		}
 	}
 	// Easiest to just identity map here...
 	memory_map(current_vmm->root_pd, (uint32_t*)((uint32_t)rsdp_d->RsdtAddress & ~0xFFF), (uint32_t*)((uint32_t)rsdp_d->RsdtAddress & ~0xFFF), 0x1);
@@ -154,10 +145,12 @@ void init_rsdt_v1()
 		// We use 4096 because it is in uint32_t form; not a pointer...
 		memory_map(current_vmm->root_pd, (uint32_t*)((uint32_t)rsdp_d->RsdtAddress & ~0xFFF + 4096), (uint32_t*)((uint32_t)rsdp_d->RsdtAddress & ~0xFFF + 4096), 0x1);
 	}
+	load_rsdt_store( rsdt_addr);
 }
 
 
 // INIT MACARONI
+// This code is spaghetti as hell...
 struct multiboot_tag_pointers init_multiboot(uint32_t *root_pd, uint32_t addr)
 {
 	struct multiboot_tag_pointers all_tags = {0};
