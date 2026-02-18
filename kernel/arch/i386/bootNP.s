@@ -35,40 +35,11 @@ mb2_hdr_end:
 # STARTING SHIM PORTION
 # init all the stack
 .section .bootstrap_stack, "aw", @nobits
+.global stack_top
 boot_stack_base:
 	.skip  4096# 16 KiB More than enough for a nice stack
 stack_top:
 
-.section .idt_setup, "aw"
-# GDT in here too because why not!
-.align 16
-gdtr_struct:
-	.short 24
-	.long gdt_start - BOOTLOC
-gdt_start:
-	.word 0, 0
-	.byte 0, 0, 0, 0 # NULL DESCRIPTOR
-
-	.word 0xffff, 0x0
-	.byte 0, 0x9a, 0xcf, 0 # CS DESCRIPTOR
-
-	.word 0xffff, 0
-	.byte 0, 0x93, 0xcf, 0
-gdt_end:
-
-.align 16
-idtr_struct:
-	.short	264
-	.long	idt_start - BOOTLOC
-idt_start:
-idt_irq1:
-	.short	0x1234				#offset bottom
-	.short 	0x10				#segment selector
-	.byte 	0 					#reserved
-	.byte	0x8e 				#gate descriptor + flags
-	.short	0	#offset top
-idt_end:
-.skip 264
 
 # create paging dir
 .section .bss, "aw", @nobits
@@ -135,34 +106,6 @@ end_garbage:
 	
 
 
-	# Loading the IDT
-	mov $(idt_start - BOOTLOC), %esi
-	mov $(idt_start + 256 - BOOTLOC), %edi
-
-idt_entry_loop:
-	# Loads the first 32 bits
-	
-	mov %esi, %eax
-	mov $irq_asm_1, %ecx
-	andl $0xffff, %ecx
-	orl $0x00080000, %ecx
-	mov %ecx, (%eax)
-
-	addl $4, %eax
-	
-	mov $irq_asm_1, %ecx
-	andl $0x00ff0000, %ecx
-	orl $0x00008e00, %ecx
-	mov %ecx, (%eax)
-	
-	addl $8, %esi
-	cmpl %esi, %edi
-	jg idt_entry_loop
-idt_entry_loop_end:
-
-	lidt idtr_struct - BOOTLOC
-	lgdt gdtr_struct - BOOTLOC
-	
 
 	movl $(boot_page_directory - BOOTLOC + 0x3), boot_page_directory - BOOTLOC + (1023 * 4)
 
@@ -179,7 +122,6 @@ idt_entry_loop_end:
 	orl $0x80000001, %ecx # Enables paging
 	movl %ecx, %cr0
 	
-	# Set up idt
 	lea 4f, %ecx # Loading the memory address of 4 into the register ecx
 	jmp *%ecx	# I believe the * means long jump and we are jumping to the effective address of 4
 	# Here we just made the virtual address to be in the 0xC0000000 range. We are still in the 0x100000 range physically! 

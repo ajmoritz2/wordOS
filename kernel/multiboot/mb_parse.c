@@ -71,15 +71,11 @@ void init_framebuffer() {
 	fb_virt_addr = (uint32_t*) pae_kalloc(num_pages, 0x3, (uint64_t) fb->common.framebuffer_addr);
 
 
+
 	bypp = fb->common.framebuffer_bpp/8;
 	fb_set_bpp(bypp);
 	fb_set_width(fb->common.framebuffer_width);
 	fb_set_height(fb->common.framebuffer_height);
-
-	*fb_virt_addr = 0xffffffff;
-	fb_virt_addr = (uint32_t *) ((uint32_t) fb_virt_addr + bypp);
-	*fb_virt_addr = 0xff00ff00;
-
 }
 
 // MADT Parsing
@@ -98,7 +94,7 @@ void* parse_MADT(uint8_t entry_id, uint8_t count)
 				return (void*)(mem_p + 2);
 		}
 		offset+=entry_head->Length;
-		mem_p+=entry_head->Length;
+	mem_p+=entry_head->Length;
 	}
 	
 	logf("MADT entry with id %d NOT FOUND!\n", entry_id);
@@ -144,6 +140,7 @@ void init_rsdt_v1()
 		return;
 	// Super weird hack to get the struct for the RSDP
 	struct RSDPDescriptor* rsdp_d = (struct RSDPDescriptor*) old_acpi->rsdp;
+	logf("RSDP Found at %x\n", rsdp_d->RsdtAddress);
 	if (validate_RSDP((char *) rsdp_d, sizeof(rsdp_d))) {
 		logf("RSDP NOT VALIDATED >><< \n");
 		return;

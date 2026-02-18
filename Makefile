@@ -32,6 +32,8 @@ OBJS+=\
 	 $(DRIVERDIR)/framebuffer.o \
 	 $(DRIVERDIR)/ps2.o		\
 	 $(KERNELDIR)/scheduler.o \
+	 $(DRIVERDIR)/fs/vfat.o \
+	 $(DRIVERDIR)/fs/vfs.o \
 
 include kernel/programs/local.mk
 include kernel/utils/utils.mk

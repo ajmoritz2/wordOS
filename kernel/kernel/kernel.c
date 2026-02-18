@@ -16,6 +16,7 @@
 #include "../drivers/keyboard.h"
 #include "../multiboot/mb_parse.h"
 #include "../programs/terminal.h"
+#include "../utils/asm_tools.h"
 
 extern char _binary_font_psf_start;
 
@@ -178,9 +179,17 @@ void triple_fault()
 					int $0x4");
 }
 
+void test_test()
+{
+	asm ("hlt");
+}
+
 void test_func()
 {
-	logf("Test func ran bruh\n");
+	logf("Printf located at %x\n", &printf);
+	int x = 10;
+	printf("Test func ran brah\n");
+	test_test();
 	kill_current_process();
 }
 
@@ -221,10 +230,13 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	set_kernel_vmm(kvmm);
 	set_current_vmm(kvmm);
 	// Do everything you want with the multiboot tags before this point. Past here it will be overwritten.	
+	init_heap();
+
 	init_apic(kvmm);
 	
+	panic("STOP\n");
+
 	// From here forward we should start PAE...
-	init_heap();
 	init_pae(kvmm);
 	init_framebuffer();
 
@@ -232,7 +244,6 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 
 
 	init_font();
-	fb_put_glyph('A', 0, 0, 0xffffffff, 0x00000000, 2);
 	// Can use text now!
 
 	logf("KERNEL STARTING LOC: %x KERNEL ENDING LOC: %x SIZE: %x\n", &_kernel_start, &_kernel_end, kernel_size); 
@@ -249,12 +260,10 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	start_terminal();
 //	process_t *new_process = create_process("Test", &test_func, 0, 1);
 	set_initial_lapic_timer_count(0xff000); // Quantum of time for scheduling
-	while (1) {
-		terminal_loop();
+	
+	asm ("int $0x30");
 
-		if (!task_state)
-			asm volatile ("hlt");
-	}
+
 	log_to_serial("\nPROGRAM TO HALT! \n");
 
 }

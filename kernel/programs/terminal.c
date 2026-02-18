@@ -26,6 +26,7 @@ uint16_t user_char_index = 2;
 uint16_t textbuf_loc = 0;
 uint16_t cur_lines = 0;
 uint8_t term_ready = 0;
+uint8_t term_flushed = 0;
 
 int max_char_x, max_char_y;
 
@@ -153,7 +154,6 @@ void scroll_text_buffer_down()
 			break;
 		}
 	}
-	logf("End first line %d\n", end_first_line);
 
 	// Move all characters backwards by first line length
 	int cur_letter = 0;
@@ -166,7 +166,6 @@ void scroll_text_buffer_down()
 		cur_letter++;
 	}
 
-	logf("cur_letter: %x\n", cur_letter);
 	// Reset the final line to all 0
 	for(int i = 0; text_buffer[cur_letter + i]; i++) {
 		text_buffer[cur_letter + i] = 0;
@@ -238,6 +237,7 @@ void parse_color(char *string, int loc)
 
 void draw_text_buffer()
 {
+	asm volatile ("cli");
 	uint16_t print_loc = 0;
 	uint16_t line_x = 0;
 	uint16_t line_num = 0;
@@ -273,6 +273,8 @@ void draw_text_buffer()
 		if (i > 1)
 			user_chars[i] = 0;	
 	}
+	asm volatile ("sti");
+
 }
 
 void draw_user_chars()
@@ -352,11 +354,12 @@ void printf(char *string, ...)
 
 
 		write_char_text_buffer(*string);
-		if (*string == '\n') 
+		if (*string == '\n') {
 			draw_text_buffer();
+
+		}
 		string++;
 	}
-	draw_user_chars();
 }
 
 void write_user_char(char ch)
@@ -379,20 +382,23 @@ void write_user_char(char ch)
 void tflush()
 {
 	draw_text_buffer();
+	draw_user_chars();
 }
 
 void bark_process()
 {
-	for (int i = 0; i < 10; i++)
-		printf("Bark\n");
-
+	for (int i = 0; i< 10; i++) {
+		printf("Testing the pile\n");
+	}
 	kill_current_process();
+	asm ("1: hlt\njmp 1b");
 }
 
 void parse_user_chars()
 {
 	char parse_index = 2;
 	char *command = (char *) kalloc(max_char_x);
+	memset(command, 0, max_char_x);
 	logf("Aquired command at %x\n", command);
 
 	while (user_chars[parse_index]) {
@@ -405,15 +411,24 @@ void parse_user_chars()
 		parse_index++;
 	}
 
-	// TODO: Make these run the script with said name
+
+
 	if (strcmp("version", command, strlen("version"))){
 		printf("WordOS kernel version: %t30%s%t10\n", KERNEL_VERSION);
 	} else if (strcmp("woof", command, strlen("woof"))){
-		printf("%t54Bark! :3%t10\n");
-		create_process("Bark", &bark_process, 0, 0);
-	} else {
+		printf("%t54okay%t10\n");
+		char *name = "Bark";
+		uint32_t *fn = (uint32_t *) &bark_process;
+		asm volatile ("mov %0, %%eax\nmov %1, %%ebx\nmov $0, %%ecx\nmov $0, %%edx\n" : : "m"(name), "m"(fn));
+		asm volatile ("int $0x80");
+	} else if (strcmp("shutdown", command, strlen("shutdown"))) {
+		printf("Goodbye!\n");
+		triple_fault();		
+	} else{
 		printf("Command %t20%s%t10 unknown.\n", command);
 	}
+
+	// TODO: Make these run the script with said name
 
 	kfree(command);
 }
@@ -438,6 +453,7 @@ void terminal_loop()
 
 	while (1) {
 		key_event event = next_keycode();
+	
 		if (event.code == KEY_NULL) {
 			asm("hlt");
 
@@ -447,7 +463,7 @@ void terminal_loop()
 
 		char keysym = keycode_to_keysym(event);
 		if (event.masks & RELEASE_MASK) keysym = 0;
-
+				
 		char *test = (char *)&event;
 		//logf("Event masks %x\n", *(test));
 		if (keysym) {
@@ -479,6 +495,7 @@ void init_terminal()
 	text_buffer = (char *)kalloc((max_char_x * max_char_y) + 1);
 	memset(text_buffer, 0, max_char_x * max_char_y + 1);
 	user_chars = (char *) kalloc(max_char_x + 1);
+	memset(user_chars, 0, max_char_x + 1);
 	user_chars[0] = '>';
 	user_chars[1] = ' ';
 

@@ -368,7 +368,7 @@ void init_pae(vmm *current_vmm)
 					mov %%eax, %%cr0\n\
 					lea reset_eip, %%eax \n\
 					jmp *%%eax \n\
-				reset_eip: 			 \n\
+				reset_eip: sti			 \n\
 					" : : "m" (pdpt_phys));  // Disables paging. Should get a fault if i remove the loop...
 
 	logf("EIP AT %x\n", eip);

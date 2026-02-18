@@ -2,6 +2,9 @@
 #ifndef INTERUPT_H
 #define INTERUPT_H
 
+extern uint32_t kesp;
+extern uint32_t pesp;
+
 typedef struct 
 {
 	uint16_t address_low;
@@ -18,25 +21,25 @@ typedef struct
 } __attribute__((packed)) idtr_t;
 
 typedef struct isr_frame {
-	uint32_t cr3;
-	uint32_t cr2;
-	uint32_t cr0;
+	uint32_t cr3; // Addr
+	uint32_t cr2; // +0x4
+	uint32_t cr0; // +0x8
 	
-	uint32_t esp;
-	uint32_t edi;
-	uint32_t esi;
-	uint32_t edx;
-	uint32_t ecx;
-	uint32_t ebx;
-	uint32_t eax;
-	uint32_t ebp;
+	uint32_t esp; // +0xc
+	uint32_t edi; // +0x10
+	uint32_t esi; // +0x14
+	uint32_t edx; // +0x18
+	uint32_t ecx; // +0x1c
+	uint32_t ebx; // +0x20
+	uint32_t eax; // +0x24
+	uint32_t ebp; // +0x28
 
-	uint32_t isr_no;
-	uint32_t isr_err;
+	uint32_t isr_no; // +0x2c
+	uint32_t isr_err; // +0x30
 
-	uint32_t eip;
-	uint32_t cs;
-	uint32_t eflags;	
+	uint32_t eip; // +0x34
+	uint32_t cs; // +0x38
+	uint32_t eflags; // +0x3c
 } __attribute__((packed)) cpu_status_t;
 
 extern void isr_stub_0(void);
@@ -75,6 +78,8 @@ extern void isr_stub_31(void);
 extern void irq_stub_48(void);
 extern void irq_stub_49(void);
 extern void irq_stub_50(void);
+
+extern void irq_stub_128(void);
 
 void exception_handler(struct isr_frame frame);
 

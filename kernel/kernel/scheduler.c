@@ -1,4 +1,5 @@
 #include "kernel.h"
+#include "idt.h"
 #include "../memory/vmm.h"
 #include "../memory/pmm.h"
 #include "../memory/paging.h"
@@ -11,7 +12,7 @@
 #define PRIV_NO_ADD		2
 
 process_t *process_list_head;
-static process_t *current_process;
+process_t *current_process;
 process_t *idle_process;
 
 int initialized = 0;
@@ -64,6 +65,7 @@ void add_process(process_t *process)
 
 void delete_process(process_t *process)
 {
+	logf("Delted\n");
 	if (process_list_head == process) {
 		
 		process_t *next = process_list_head->next;
@@ -118,6 +120,7 @@ void create_new_pdptes(process_t *process)
 	pae_mmap(process->vmm_obj->root_pdpt, phys_pdmed, (uint32_t *) TEMP_PAGE_VIRT, 0x3);
 	asm ("movl %cr3, %eax\n\ 
 			movl %eax, %cr3"); // TLB Flush
+	memset(temp_page, 0, 4096);
 	temp_page[511] = phys_pdmed | 1;
 
 	pae_mmap(process->vmm_obj->root_pdpt, phys_pdhigh, (uint32_t *) TEMP_PAGE_VIRT, 0x3);
@@ -131,62 +134,16 @@ void create_new_pdptes(process_t *process)
 	new_vmm->pd_mid = phys_pdmed;
 	new_vmm->pd_high = phys_pdhigh;
 
-	set_current_vmm(new_vmm);
+	set_current_vmm(new_vmm); // New stack ---- CANNOT USE VARIABLES OR RETURN FUNCTION, BUT ESP IS SAME SO WE GET JUNK!
 	uint32_t *vmm_pspace = pae_alloc(4096, 0x3, (uint32_t) vmm_store_phys);
 	
-
 	uint32_t root_offset = (uint32_t) new_vmm->root - (uint32_t) new_vmm->vm_obj_store_addr; 
 	new_vmm->vm_obj_store_addr = (uint32_t) vmm_pspace + sizeof(vmm);
 	
 	// Set the root node 28 offset
 	new_vmm->root = (void *) (uint32_t) new_vmm->vm_obj_store_addr + root_offset;
 
-	process->context->esp = (uint32_t) alloc_stack(new_vmm) - 100;
-
-	process->context->ebx = 0xbeef;
-
-	process->vmm_obj = (vmm *) vmm_pspace;
-	logf("Vmm pspace at %x\n", vmm_pspace);
-	pae_unmap((uint32_t *) new_vmm);
-}
-
-void configure_page_directory(process_t *process)
-{
-	// I need to grab the root_pd first and then swap it out
-	uint32_t phys_pd = alloc_phys_page();
-	uint32_t vmm_store_phys = alloc_phys_page();
-
-	uint32_t *vmm_kspace = pae_kalloc(4096, 0x3, (uint32_t) vmm_store_phys);
-	uint32_t *pd_kspace = pae_kalloc(4096, 0x3, (uint32_t) phys_pd);
-	
-	vmm *new_vmm = create_vmm(pd_kspace, 0x10000, 0xc0000000, vmm_kspace);
-
-	process->vmm_obj = new_vmm;
-
-	copy_higher_half_kernel_pd(pd_kspace);
-
-	pd_kspace[1023] = (uint32_t) phys_pd | 3; // Recursive paging
-
-	set_current_vmm(new_vmm);
-
-
-	uint32_t *vmm_pspace = pae_alloc(4096, 0x3, (uint32_t) vmm_store_phys);
-	uint32_t *pd_pspace = pae_alloc(4096, 0x3, (uint32_t) phys_pd);
-
-	if (!vmm_pspace || !pd_pspace) {
-		panic("No vmm_space or pd_space allocated for process!\n");
-	}
-
-	new_vmm->root_pd = pd_pspace;
-	uint32_t root_offset = (uint32_t) new_vmm->root - (uint32_t) new_vmm->vm_obj_store_addr; 
-	new_vmm->vm_obj_store_addr = (uint32_t) vmm_pspace + sizeof(vmm);
-	
-	// Set the root node 28 offset
-	new_vmm->root = (void *) (uint32_t) new_vmm->vm_obj_store_addr + root_offset;
-
-	process->context->esp = (uint32_t) alloc_stack(new_vmm) - 100;
-
-	process->context->ebx = 0xbeef;
+	process->context->esp = (uint32_t) alloc_stack(new_vmm) - 0x20;
 
 }
 
@@ -201,9 +158,10 @@ void kill_current_process()
 
 process_t *create_process(char *name, void(*function)(void), void *arg, int privileged) 
 {
-	asm volatile ("cli");
+	vmm *parent_vmm = current_vmm;
 	process_t *process = kalloc(sizeof(process_t));
-	logf("\nCreating process at %x\n", process);
+	logf("kio\n");
+	logf("Creating process at %x\n", process);
 	memset(process, 0, sizeof(process));
 
 	logf("Process name: %s\n", name);
@@ -225,19 +183,23 @@ process_t *create_process(char *name, void(*function)(void), void *arg, int priv
 	process->next = NULL;
 	uint32_t init_cr0 = 0;
 	uint32_t init_cr3 = 0;
-	asm ("mov %%cr0, %0\n\
+	asm volatile ("mov %%cr0, %0\n\
 			mov %%cr3, %1" : "=r" (init_cr0), "=r" (init_cr3));
 	process->context->cr0 = init_cr0;
 	process->context->cr2 = 0;
 	process->context->cr3 = init_cr3;
+
+	process->context->ebx = 0xbeef;
 
 	
 	if (privileged != PRIV_NO_ADD) {
 		add_process(process);
 	}
 	logf("Process context stored at %x\n", process->context);
+	if (parent_vmm)
+		set_current_vmm(parent_vmm);
 
-	asm volatile ("sti");
+	logf("Process truly finished...\n");
 
 	return process;
 }
@@ -245,6 +207,8 @@ process_t *create_process(char *name, void(*function)(void), void *arg, int priv
 
 cpu_status_t *schedule(cpu_status_t *context)
 {
+	// Process switch explodes the world in this case...
+	// Because of this return values are not consistent and will be set to 0
 	if (current_process) {
 		memcpy(current_process->context, context, sizeof(cpu_status_t));
 	}
@@ -256,6 +220,7 @@ cpu_status_t *schedule(cpu_status_t *context)
 		
 		if (current_process->status == DEAD) {
 			delete_process(current_process);
+			logf("Process dead\n");
 		} else {
 			current_process->status = READY;
 		}
@@ -272,8 +237,8 @@ cpu_status_t *schedule(cpu_status_t *context)
 	}
 
 	current_process->status = RUNNING;
+	set_current_vmm(current_process->vmm_obj);
 
-	//printf("Process context EIP %x, ESP %x, CR3: %x\n", current_process->context->eip, current_process->context->esp, current_process->context->cr3);
 
 	return current_process->context;
 }

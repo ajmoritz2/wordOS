@@ -130,8 +130,8 @@ void init_ps2_controller()
 
 	// SELF-TEST
 	outportb(0x64, 0xAA);
-	if (ps2_get_responce() != 0x55)
-		panic("PS2 Test failed!\n");
+//	if (ps2_get_responce() != 0x55)
+	//	panic("PS2 Test failed!\n");
 	// Determine channel count
 	ps2_send_command(0xA8);
 	ps2_send_command(0x20);
@@ -182,7 +182,7 @@ void init_ps2_controller()
 	if (resp && resp != 0xFC) {
 		resp = inportb(0x60);
 	} else {
-		panic("Port not populated...\n");
+	//	panic("Port not populated...\n");
 	}
 
 	if (dual) {
@@ -194,7 +194,7 @@ void init_ps2_controller()
 			resp = ps2_get_responce_to(32);
 			printf("Device on ps/2 2 id: %x\n", resp);
 		} else {
-			panic("Port not populated...\n");
+		//	panic("Port not populated...\n");
 		}
 	}
 }

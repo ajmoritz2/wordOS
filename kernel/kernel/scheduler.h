@@ -26,6 +26,7 @@ typedef struct process_t {
 } process_t;
 
 extern process_t *idle_process;
+extern process_t *current_process;
 
 process_t *create_process(char *name, void(*function)(void), void *arg, int privileged);
 void add_process(process_t *process);
