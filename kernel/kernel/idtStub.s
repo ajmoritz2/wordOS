@@ -232,3 +232,4 @@ isr_no_err_stub 31
 
 irq_stub 49
 irq_stub 50
+irq_stub 51

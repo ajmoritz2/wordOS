@@ -1,4 +1,5 @@
 /* VMM.C HEADER FILE vmm.h
+	leogf("MSI Found at %x\n", cap_pointer);
  * CREATED 09/19/2024
  *
  * FOR WORDOS
@@ -149,6 +150,7 @@ void set_current_vmm(vmm* new_vmm)
 
 void* vmm_page_alloc(vmm *cvmm, size_t length, size_t flags, uint64_t phys, uint32_t pae_enabled)
 {
+	// My rbtree implementation scares the shit out of me also idfk how this stuff works anymore
 	rbnode_t *current = cvmm->root;
 	length = BYTE_PGROUNDUP((uint32_t) length);
 

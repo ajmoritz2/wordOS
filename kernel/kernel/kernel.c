@@ -4,7 +4,9 @@
 #include "idt.h"
 #include "gdt.h"
 #include "kernel.h"
+#include "pci.h"
 #include "scheduler.h"
+#include "../acpi/acpi.h"
 #include "../memory/string.h"
 #include "../memory/pmm.h"
 #include "../memory/paging.h"
@@ -121,40 +123,66 @@ void logf(char *string, ...)
 	va_start(params, string); 
 	while (*string) {
 		if (*string == '%') {
-			*string++;
-			switch (*string) {
-				case 'l':
-					print_hex(va_arg(params, uint64_t));
-					break;
-				case 'x':
-					print_hex(va_arg(params, uint32_t));
-					break;
-				case '%':
-					outportb(PORT, *string);
-					break;
-				case 't':
-					string+=2;
-					break;
-				case 'd':
-					log_integer_to_serial(va_arg(params, uint32_t));
-					break;
-				case 's':
-					log_to_serial(va_arg(params, char *));
-					break;
-				case 'c':
-					char character = (char) va_arg(params, uint32_t);
-					outportb(PORT, character);
-					break;
-				default:
-					log_to_serial("UNKNOWN OPTION %");
-					outportb(PORT, *string);
-					log_to_serial("!\n");
-					break;
+			string++;
+			if (*string == 'l') {
+				string++;
+				switch (*string) {
+					case 'x':
+						print_hex(va_arg(params, uint64_t));
+						break;
+					case '%':
+						outportb(PORT, *string);
+						break;
+					case 't':
+						string+=2;
+						break;
+					case 'd':
+						log_integer_to_serial(va_arg(params, uint64_t));
+						break;
+					case 's':
+						log_to_serial(va_arg(params, char *));
+						break;
+					case 'c':
+						char character = (char) va_arg(params, uint32_t);
+						outportb(PORT, character);
+						break;
+					default:
+						log_to_serial("UNKNOWN OPTION %");
+						outportb(PORT, *string);
+						log_to_serial("!\n");
+						break;
+				}
+			} else {
+				switch (*string) {
+					case 'x':
+						print_hex(va_arg(params, uint32_t));
+						break;
+					case '%':
+						outportb(PORT, *string);
+						break;
+					case 't':
+						string+=2;
+						break;
+					case 'd':
+						log_integer_to_serial(va_arg(params, uint32_t));
+						break;
+					case 's':
+						log_to_serial(va_arg(params, char *));
+						break;
+					case 'c':
+						char character = (char) va_arg(params, uint32_t);
+						outportb(PORT, character);
+						break;
+					default:
+						log_to_serial("UNKNOWN OPTION %");
+						outportb(PORT, *string);
+						log_to_serial("!\n");
+						break;
+				}
 			}
 			*string++;
 			continue;
 		}
-
 		outportb(PORT, *string);
 
 		*string++;
@@ -231,28 +259,42 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	set_current_vmm(kvmm);
 	// Do everything you want with the multiboot tags before this point. Past here it will be overwritten.	
 	init_heap();
+<<<<<<< HEAD
 
 	init_apic(kvmm);
 	
 	panic("STOP\n");
 
+=======
+	cache_tables();
+
+	init_apic(kvmm);
+
+	set_initial_lapic_timer_count(0); // Disable timer for now 
+>>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	// From here forward we should start PAE...
 	init_pae(kvmm);
 	init_framebuffer();
+
 
 	put_pixel(100, 100, 0xffffffff);
 
 
 	init_font();
+<<<<<<< HEAD
+=======
+	init_terminal();
+>>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	// Can use text now!
 
 	logf("KERNEL STARTING LOC: %x KERNEL ENDING LOC: %x SIZE: %x\n", &_kernel_start, &_kernel_end, kernel_size); 
-	init_terminal();
+	test_pci();
 	init_keyboard();
 	printf("Welcome to WordOS. Home of the METS!\n");
 	printf("Fuck the yankees... %t30May the dodgers win!%t10\n");
 
 	printf("Basic kernel function %t30OK!%t10\n");
+	printf("Found %x cores on the cpu\n", madt_counts.lapic); 
 
 	printf("Starting terminal...\n");
 	set_initial_lapic_timer_count(0); // Disable timer for now 
@@ -262,8 +304,11 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	set_initial_lapic_timer_count(0xff000); // Quantum of time for scheduling
 	
 	asm ("int $0x30");
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	log_to_serial("\nPROGRAM TO HALT! \n");
 
 }

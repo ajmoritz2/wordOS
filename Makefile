@@ -16,6 +16,7 @@ KERNELC?=kernel.c
 
 OBJS+=\
      $(ARCHDIR)/bootNP.o \
+	 $(KERNELDIR)/ahci/ahci.o \
      $(MEMDIR)/pmm.o \
      $(MEMDIR)/vmm.o \
      $(MBDIR)/mb_parse.o \
@@ -31,12 +32,14 @@ OBJS+=\
 	 $(DRIVERDIR)/keyboard.o \
 	 $(DRIVERDIR)/framebuffer.o \
 	 $(DRIVERDIR)/ps2.o		\
+	 $(KERNELDIR)/pci.o		\
 	 $(KERNELDIR)/scheduler.o \
 	 $(DRIVERDIR)/fs/vfat.o \
 	 $(DRIVERDIR)/fs/vfs.o \
 
 include kernel/programs/local.mk
 include kernel/utils/utils.mk
+include kernel/acpi/local.mk
 
 .PHONY: all, clean
 

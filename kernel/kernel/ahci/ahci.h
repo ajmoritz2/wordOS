@@ -9,10 +9,13 @@
 #define	SATA_SIG_PM	0x96690101	// Port multiplier
 								//  IDK how these signatures are gotten lmaoo
 
+<<<<<<< HEAD
 #define ATA_CMD_DMA_WRITE_EXT	0x35 // TODO: REPLACE WITH VALUE
 #define ATA_CMD_DMA_READ_EXT	0x25
 #define ATA_CMD_DMA_READ		0x3c //TODO: FIND REAL VALUE
 
+=======
+>>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 #define HBA_PORT_IPM_PRESENT	1
 #define HBA_PORT_DET_PRESENT	0x3
 
@@ -103,7 +106,11 @@ struct HBA_mem {
 #define HBA_HEAD_BIST		(1 << 9)
 #define HBA_HEAD_CLEAR		(1 << 10)
 
+<<<<<<< HEAD
 volatile struct HBA_CMD_HEADER {
+=======
+struct HBA_CMD_HEADER {
+>>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	uint16_t FIS_flags; /*
 						0:4 - Command FIS Length
 						5 - ATAPI
@@ -131,7 +138,11 @@ struct HBA_PRDT_ENTRY {
 	uint32_t dw3;
 };
 
+<<<<<<< HEAD
 volatile struct HBA_CMD_TBL {
+=======
+struct HBA_CMD_TBL {
+>>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	uint8_t cfis[64];
 
 	uint8_t acmd[16];
@@ -171,7 +182,11 @@ struct ahci_ram_ports {
 
 #define FIS_H2D_CLEAR		(1 << 7)
 
+<<<<<<< HEAD
 volatile struct FIS_REG_H2D {
+=======
+struct FIS_REG_H2D {
+>>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	uint8_t fis_type;
 	uint8_t p_flags;
 
@@ -228,7 +243,11 @@ struct FIS_PIO_D2H {
 	uint16_t rsv2;
 };
 
+<<<<<<< HEAD
 volatile struct FIS_DMA_D2H {
+=======
+struct FIS_DMA_D2H {
+>>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	uint8_t fis_type;
 	uint8_t flags; // 0-3 : Port multiplier
 				   // 4 : RSV

@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 /* 
  * PCI Functionality
  *  WordOS
@@ -86,10 +89,13 @@ void ahci_action()
 	}
 }
 
+<<<<<<< HEAD
 void read_ahci_status(){
 	logf("AHCI Status = %x\n", AHCIAddr->header.Status);
 }
 
+=======
+>>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 void brute_force(struct MMECS *config, int bus)
 {
 	static uint32_t base_virt = 0xd0000000;
@@ -122,6 +128,10 @@ void brute_force(struct MMECS *config, int bus)
 			handle_device((struct PCIDevType0 *) header);
 		}
 	}
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 }
 
 void *get_ahci_BAR5()
@@ -139,5 +149,8 @@ void test_pci()
 	init_ahci_controller();
 	panic("Done with PCI");
 }
+<<<<<<< HEAD
 =======
 >>>>>>> parent of 8fae1a0 (ahci stuff and acpi stuff. cant read disk yet)
+=======
+>>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f

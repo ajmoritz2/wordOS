@@ -103,3 +103,43 @@ void kfree(void *mem)
 		logf("Defragmented node %t30%x%t10 with %t30%x%t10. New size: %x\n", node_prev, node, node_prev->size);
 	}
 }
+
+void *rekalloc(void *ptr, size_t size)
+{	
+	size = (0x20 - 1 + size ) & ~(0x20 - 1);
+	struct mem_header *node = (struct mem_header *) (ptr - sizeof(struct mem_header));
+
+	// We will look in front first
+	struct mem_header *node_next = node->next;
+
+	if (!node_next) goto free_memory;
+
+	if (node_next->status == HEAP_FREE) {
+		if (node_next->size + node->size >= size) {
+			// Can merge with next node
+			size_t old_size = node->size;
+			node->size = size;
+			if (node_next->size + old_size == size) {
+				node->next = node_next->next;
+				memset(node_next, 0, node_next->size + sizeof(struct mem_header));
+				return (void*) node + sizeof(struct mem_header);
+			}
+			struct mem_header *new_next = (struct mem_header *) ((void *) node + node->size + sizeof(struct mem_header));
+			new_next->status = HEAP_FREE;
+			new_next->size = (node_next->size + old_size) - size;
+			new_next->next = node->next->next;
+			new_next->prev = node;
+			node->next = new_next;
+			return (void *) node + sizeof(struct mem_header);
+		}
+	} else {
+free_memory:
+		void *new_addr = kalloc(size);
+		memcpy(new_addr, ptr, node->size);
+		kfree(ptr);
+		return new_addr;
+	}
+
+	return (void *) 0;
+
+}

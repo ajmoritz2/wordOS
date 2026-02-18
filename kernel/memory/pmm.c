@@ -62,6 +62,8 @@ uint32_t get_first_frame()
 
 void clear_frame(uint32_t frame)
 {
+	if (frame > num_frames)
+		return;
 	frames[frame/32] &= ~(0x1 << frame%32);
 }
 

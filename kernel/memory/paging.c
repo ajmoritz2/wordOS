@@ -1,6 +1,6 @@
 #include "../kernel/kernel.h"
 #include "../kernel/idt.h"
-#include "../drivers/apic.h"
+#include "../utils/asm_tools.h"
 #include "pmm.h"
 #include "vmm.h"
 #include "string.h"
@@ -18,6 +18,7 @@ uint32_t kernel_pt[1024] __attribute__((aligned(4096)));
 void memory_map(uint32_t* root_pd, uint32_t* phys, 
 		uint32_t* virt, size_t flags)
 {
+	logf("WARNING: USING NON-PAE MEMORY_MAP\n");	
 	/*
 	 * Page tables are located at (RECURSIVE_ADDR | (pd_index << 12))
 	 * Check presence at the PD entry
@@ -57,6 +58,26 @@ void memory_unmap(uint32_t* root_pd, uint32_t* virt) {
 
 // NEW pae functions
 
+uint64_t get_phys_from_virt(void *virt)
+{
+	
+	uint8_t pdpte = (virtual_t) virt >> 30;
+	uint32_t pd_index = ((virtual_t) virt >> 21) & 0x1ff;
+	uint32_t pt_index = ((virtual_t) virt >> 12) & 0x1ff;
+	// Size is 0x200000
+	uint32_t *recursive_addr = (uint32_t *) ((pdpte << 30) + 0x3fe00000); 
+	
+	uint64_t *pt = (uint64_t *) ((uint32_t) recursive_addr | (pd_index << 12));
+	uint64_t *pd = (uint64_t *) ((uint32_t) recursive_addr | (1023 << 12));
+
+	if (!(pd[pd_index] & 1)) {
+		logf("VIRTUOSO ADDRESS NON EXISTANT\n");
+		return 0;
+	}
+
+	return pt[pt_index] & ~0xfff;
+}
+
 void *pae_mmap(uint64_t *root_pdpt, uint64_t phys, virtual_t *virt, uint32_t flags)
 {
 	// Root pdpt is uint32_t because that is the ONLY POSSIBLE SIZE
@@ -73,8 +94,6 @@ void *pae_mmap(uint64_t *root_pdpt, uint64_t phys, virtual_t *virt, uint32_t fla
 	uint64_t *pd = (uint64_t *) ((uint32_t) recursive_addr | (1023 << 12));
 
 	if ((uint64_t) phys >> max_bit_extension) {
-		if (max_bit_extension > 40)
-			triple_fault();
 		panic("Physical address past possible value\n");
 	}
 
@@ -103,9 +122,9 @@ void pae_unmap(uint32_t *virt)
 	uint32_t phys = pt[pt_index] & ~0xFFF;
 
 	clear_frame(physical_to_frame((uint32_t*)phys));
+	volatile uint64_t *addr_change = &(pt[pt_index]);
+	*addr_change = 0;
 
-
-	pt[pt_index] = 0x0;
 }
 
 
@@ -115,7 +134,7 @@ uint32_t* create_new_pt(uint32_t* root_pd, uint32_t pd_index, uint32_t recursive
 	
 	log_to_serial("CREATING NEW PT\n");
 	
-	uint32_t* new_pt = (uint32_t *) alloc_phys_page();
+	uint64_t new_pt = (uint64_t ) alloc_phys_page();
 
 	root_pd[pd_index] = (uint32_t) new_pt | 3;
 	

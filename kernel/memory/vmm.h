@@ -8,6 +8,14 @@
 #define VM_FLAG_WRITE (1 << 1)
 #define VM_FLAG_USER (1 << 2)
 #define VM_OBJ_FLAG_PRESENT (1 << 3)
+#define PG_PRES 	(1 << 0)
+#define PG_RW		(1 << 1)
+#define PG_USER		(1 << 2)
+#define PG_PWT		(1 << 3) // Write through
+#define PG_PCD		(1 << 4)
+#define PG_ACC		(1 << 5)
+#define PG_AVL		(1 << 6)
+#define PG_SIZE		(1 << 7)
 
 typedef struct vm_obj {
 	uintptr_t base; // First bit is a present flag

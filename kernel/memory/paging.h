@@ -66,6 +66,7 @@ void copy_higher_half_kernel_pd(void *pd);
 void init_pae(vmm *current_vmm);
 void *pae_mmap(uint64_t *root_pdpt, uint64_t phys, virtual_t *virt, uint32_t flags);
 void pae_unmap(uint32_t *virt);
+uint64_t get_phys_from_virt(void *virtual);
 
 
 #endif

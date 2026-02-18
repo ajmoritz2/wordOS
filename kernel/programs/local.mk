@@ -1,4 +1,5 @@
 
-OBJ_DIR = kernel/programs
+PROGRAM_DIR := kernel/programs
 
-OBJS += $(OBJ_DIR)/terminal.o
+OBJS += \
+		$(PROGRAM_DIR)/terminal.o \
