@@ -21,7 +21,6 @@ static inline uint32_t ata_disk_size(struct ahci_ram_ports *port)
 	return (port->sector_words * 2) * port->lba_count;
 }
 
-<<<<<<< HEAD
 unsigned int find_cmd_slot(struct ahci_ram_ports *port)
 {	
 	uint32_t slots = (port->port->pxsact | port->port->pxci);	
@@ -36,8 +35,6 @@ unsigned int find_cmd_slot(struct ahci_ram_ports *port)
 	panic("No AHCI Free port found!\n");
 }
 
-=======
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 uint32_t check_device(struct HBA_ports *port)
 {
 	
@@ -88,7 +85,6 @@ void stop_commands(struct HBA_ports *port)
 	}
 }
 
-<<<<<<< HEAD
 void post_ata_command(struct ahci_ram_ports *ram_port, uint64_t lba, uint32_t count, uint32_t *buffer, uint8_t command)
 {
 	int slot = find_cmd_slot(ram_port);
@@ -160,8 +156,6 @@ void post_ata_command(struct ahci_ram_ports *ram_port, uint64_t lba, uint32_t co
 	if (i == 10000000) { panic("SATA Port timed out"); return; }
 }
 
-=======
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 void init_ahci_cmd_port()
 {
 	// TODO: Devise a real method that wont waste pages on aligned physical addresses
@@ -234,7 +228,6 @@ void probe_ports(struct HBA_mem *hba)
 	}
 }
 
-<<<<<<< HEAD
 void reset_port(struct ahci_ram_ports *ram_port)
 {
 	struct HBA_ports *port = ram_port->port;
@@ -252,8 +245,6 @@ void reset_port(struct ahci_ram_ports *ram_port)
 	struct FIS_REG_H2D *cmd2 = (struct FIS_REG_H2D *) &cmd_tbl2->cfis;
 }
 
-=======
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 void read_identify(uint16_t *data, struct ahci_ram_ports *ram_port)
 {
 	ram_port->sig = data[ATA_IDENTIFY_SIGNATURE];
@@ -334,7 +325,6 @@ void identify()
 	
 }
 
-<<<<<<< HEAD
 void *ata_read(struct ahci_ram_ports *ram_port, uint32_t startl, uint32_t starth, uint32_t count, void *buf)
 {
 //	uint64_t buf_phys = alloc_phys_page();
@@ -345,38 +335,21 @@ void *ata_read(struct ahci_ram_ports *ram_port, uint32_t startl, uint32_t starth
 	logf("FB AT %x\n", ram_port->fb_addr);
 
 	logf("PORT SSTS: %x\nPORT TFD: %x\nPORT CMD: %x\n", ram_port->port->pxssts, ram_port->port->pxtfd, ram_port->port->pxcmd);
-=======
-void ata_read(struct ahci_ram_ports *ram_port, uint32_t startl, uint32_t starth, uint32_t count, void *buf)
-{
-	memset((void *) ram_port->fb_addr, 0, 0x200);
-	uint32_t buf_offset = (uint32_t) buf & 0xfff;
-	uint64_t buf_phys = get_phys_from_virt(buf) + buf_offset;
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	
 	int spin = 0;
 	ram_port->port->pxis = 0xffffffff; // clear is bits
 	ram_port->port->pxie = 0xffffffff;
 						   //
 	struct HBA_CMD_HEADER *cmd_header = (struct HBA_CMD_HEADER *) ram_port->clb_addr;
-<<<<<<< HEAD
 	cmd_header->FIS_flags = sizeof(struct FIS_REG_H2D) / sizeof(uint32_t);
 	cmd_header->FIS_flags |= (1 << 6);	 // WRITE BIT
 	//cmd_header->FIS_flags &= ~(1 << 10); // C_OK when done
 	// TODO: Change this to align with the numbers
 	cmd_header->prdtl = 2;
-=======
-	//memset(cmd_header, 0, sizeof(struct HBA_CMD_HEADER));
-	cmd_header->FIS_flags = sizeof(struct FIS_REG_H2D) / sizeof(uint32_t);
-	cmd_header->FIS_flags &= ~(1 << 6);
-	cmd_header->FIS_flags |= (1 << 10);
-	// TODO: Change this to align with the numbers
-	cmd_header->prdtl = 1;
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	cmd_header->prdbc = 0;
 	
 	struct HBA_CMD_TBL *cmd_tbl = (struct HBA_CMD_TBL *) (ram_port->ctlb_addr);
 	memset(cmd_tbl, 0, sizeof(struct HBA_CMD_TBL) + 0x20);
-<<<<<<< HEAD
 	int entry_val = 0;
 	for (;entry_val < cmd_header->prdtl; entry_val++) {
 		cmd_tbl->entries[entry_val].dba = (uint32_t) (buf_phys & 0xffffffff);
@@ -391,27 +364,15 @@ void ata_read(struct ahci_ram_ports *ram_port, uint32_t startl, uint32_t starth,
 		cmd_tbl->entries[0].dw3 = 0x2 << 10;
 
 	logf("COMMAND TBL ENTRY %x\n", &cmd_tbl->entries[1].dw3);
-=======
-	cmd_tbl->entries[0].dba = (uint32_t) (buf_phys + buf_offset);
-	cmd_tbl->entries[0].dbau = (buf_phys >> 31);
-	cmd_tbl->entries[0].dw3 = (0x100 - 1) | (1 << 31);
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 		
 	struct FIS_REG_H2D *cmd = (struct FIS_REG_H2D *) &cmd_tbl->cfis;
 	memset(cmd, 0, sizeof(struct FIS_REG_H2D));
 
 	cmd->fis_type = 0x27;
-<<<<<<< HEAD
 	cmd->command = 0x35;
 	cmd->device = 1 << 6; // LBA MODE
 	cmd->p_flags = 0;
 	cmd->p_flags |= (1 << 7); // Command Flag
-=======
-	cmd->command = 0xc8;
-	cmd->device = 1 << 6;
-	cmd->p_flags = 0;
-	cmd->p_flags |= (1 << 7);
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 
 	cmd->lba0 = (uint8_t) startl;
 	cmd->lba1 = (uint8_t) (startl >> 8);
@@ -419,32 +380,18 @@ void ata_read(struct ahci_ram_ports *ram_port, uint32_t startl, uint32_t starth,
 	cmd->lba3 = (uint8_t) (startl >> 24);
 	cmd->lba4 = (uint8_t) 0;
 	cmd->lba5 = (uint8_t) 0;
-<<<<<<< HEAD
 	cmd->countl = 2;
 	cmd->counth = 0;
 
-=======
-	cmd->countl = 1;
-	cmd->counth = 1;
-
-	logf("Current pxpis %x\n", ram_port->port->pxtfd);
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	ram_port->port->pxci |= 1;
 	int i =0;
 	while (i < 10000000 && ram_port->port->pxci & 1) {i++;}
 	if ( i== 10000000) panic("HELD DISK\n");
-<<<<<<< HEAD
 	struct FIS_PIO_D2H *identify = (struct FIS_PIO_D2H *) (ram_port->fb_addr);
 	
 	logf("PORT SSTS: %x\nPORT TFD: %x\nPORT CMD: %x\n", ram_port->port->pxssts, ram_port->port->pxtfd, ram_port->port->pxcmd);
 	logf("FB AT %x\n", identify);
 	logf("FIS AT %x\n", cmd);
-=======
-	struct FIS_PIO_D2H *identify = (struct FIS_PIO_D2H *) (ram_port->fb_addr + 0x40);
-	
-	logf("FB AT %x\n", ram_port->port->pxssts);
-	logf("PRDTB %x\n", cmd_tbl);
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 }
 
 void init_ahci_controller()
@@ -464,7 +411,6 @@ void init_ahci_controller()
 	init_ahci_cmd_port();
 	identify();
 
-<<<<<<< HEAD
 	logf("Header Caps: %x\n", header->GHC.Capabilities);
 
 	header->GHC.GlobHostCtrl |= 1 << 31 | 1 << 1; // Sets into AHCI Mode
@@ -480,16 +426,6 @@ void init_ahci_controller()
 	for (int i = 0; i < 0x500; i++) {
 		if (*((uint8_t *) read_buffer + i))
 			logf("%c",*((uint8_t*) read_buffer + i));
-=======
-	struct ahci_ram_ports *ram_port = al_get(sata_ports, 0);
-	void *read_buffer = kalloc(0x500);
-	ata_read(ram_port, 0, 0, 5, read_buffer); 
-	ata_read(ram_port, 0, 0, 5, read_buffer); 
-	logf("PER SECTOR: %x\n", ram_port->sector_words);
-	logf("Buffer addr: %x\n", read_buffer);
-	for (int i = 0; i < 0x200; i++) {
-		logf("%x ",*((uint8_t*) read_buffer + i));
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	}
 }
 
