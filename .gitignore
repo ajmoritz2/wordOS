@@ -3,5 +3,4 @@
 !font.o
 *.log
 *.swp
-testfs.fat32
 bochsout.txt
