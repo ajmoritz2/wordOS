@@ -107,9 +107,6 @@ void handle_keychange()
 
 void init_ps2_controller()
 {
-	// Lots of magic numbers here, but i dont really care...
-	// Hopefully I wont have to touch it again
-
 	uint8_t dual = 0;
 	// We will pretend it exists...
 	// Disables the devices
@@ -129,9 +126,17 @@ void init_ps2_controller()
 	ps2_send_command(0x20);
 
 	// SELF-TEST
+<<<<<<< HEAD
 	outportb(0x64, 0xAA);
 //	if (ps2_get_responce() != 0x55)
 	//	panic("PS2 Test failed!\n");
+=======
+	ps2_send_command(0xAA);
+	if (ps2_get_responce() != 0x55)
+		panic("PS2 Test failed!\n");
+	printf("PS2 Test succeeded\n");
+
+>>>>>>> parent of a177b7f (keyboard works. funny memory fault on return)
 	// Determine channel count
 	ps2_send_command(0xA8);
 	ps2_send_command(0x20);
@@ -150,8 +155,7 @@ void init_ps2_controller()
 	// Interface tests
 	uint8_t total_ports = 0;
 	ps2_send_command(0xAB);
-	uint8_t port_test = ps2_get_responce();
-	if (port_test)
+	if (!ps2_get_responce())
 		total_ports++;
 	if (dual) {
 		ps2_send_command(0xA9);
@@ -163,6 +167,8 @@ void init_ps2_controller()
 		printf("PS/2 Non-functional\n");
 		return;
 	}
+
+	printf("Total working ps/2 ports: %x\n", total_ports);
 
 	ps2_send_command(0xAE);
 	if (dual) {
@@ -178,9 +184,13 @@ void init_ps2_controller()
 	ps2_send_byte_port1(0xFF);
 	ps2_send_byte_port1(0xFF);
 	// I have to double send.... for some reason
-	uint8_t resp = ps2_get_responce_to(32000);
+
+
+	uint8_t resp = ps2_get_responce_to(3200000);
 	if (resp && resp != 0xFC) {
-		resp = inportb(0x60);
+		resp = ps2_get_responce_to(32);
+		resp = ps2_get_responce_to(32);
+		printf("Device on ps/2 id: %x\n", resp);
 	} else {
 	//	panic("Port not populated...\n");
 	}
@@ -228,12 +238,5 @@ void init_keyboard()
 	uint32_t ioapic_data = 50; // 50 is the vector
 	write_ioapic_register(keyboard_reg, ioapic_data); // We set up the APIC keyboard reg before init keyboard IN KERNELC
 	write_ioapic_register(keyboard_reg + 1, 0); 
-	outportb(0x64, 0x20);
-	uint8_t stat_reg = inportb(0x60);
-	stat_reg |= 1;
-	outportb(0x64, 0x60);
-	outportb(0x60, stat_reg);
-	stat_reg = inportb(0x60);
 	printf("Keyboard Function: %t30OK!%t10\n");
-
 }
