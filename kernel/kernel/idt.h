@@ -82,8 +82,6 @@ extern void irq_stub_51(void);
 
 extern void irq_stub_128(void);
 
-extern void irq_stub_128(void);
-
 void exception_handler(struct isr_frame frame);
 
 void idt_set_descriptor(uint8_t vector, uint32_t  isr, uint8_t flags);

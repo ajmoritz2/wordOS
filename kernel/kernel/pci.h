@@ -5,10 +5,6 @@
  *
  * 	PCI BUS HEADER FILE
  */
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 
 #ifndef PCI_H
 #define PCI_H
@@ -130,13 +126,6 @@ struct PCIMSI64Header {
 void test_pci();
 
 void *get_ahci_BAR5();
-<<<<<<< HEAD
 void read_ahci_status();
 
 #endif
-=======
->>>>>>> parent of 8fae1a0 (ahci stuff and acpi stuff. cant read disk yet)
-=======
-
-#endif
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f

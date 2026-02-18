@@ -3,13 +3,6 @@
  * 11/03/25
  */
 
-<<<<<<< HEAD
-inline int get_iflag()
-{
-	int eflags = 0;
-	asm volatile ("pushf\nmov (%%esp), %0" : "=m"(eflags));
-	return eflags & (1 << 8);
-=======
 #include "asm_tools.h"
 #include "../kernel/idt.h"
 #include "../kernel/kernel.h"
@@ -49,5 +42,4 @@ uint64_t read_msr(uint32_t msr)
 			  [edx] "=m"(edx) 
 			: [msr] "r"(msr));
 	return (uint64_t)(eax | ((uint64_t)edx << 32));
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 }

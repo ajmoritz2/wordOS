@@ -2,17 +2,6 @@
  *
  * 11/03/25
  */
-<<<<<<< HEAD
-
-#include <stdint.h>
-
-static inline int get_iflag()
-{
-	uint32_t eflags = 0;
-	asm volatile ("pushf\nmovl (%%esp), %%eax\n\movl %%eax, %0" : "=m"(eflags));
-	return eflags & (1 << 9);
-}
-=======
 #ifndef ASM_TOOLS_H
 #define ASM_TOOLS_H
 #include <stdint.h>
@@ -36,4 +25,3 @@ static inline int get_iflag()
 }
 
 #endif
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f

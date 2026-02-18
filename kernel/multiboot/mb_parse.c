@@ -78,32 +78,6 @@ void init_framebuffer() {
 	fb_set_bpp(bypp);
 	fb_set_width(fb->common.framebuffer_width);
 	fb_set_height(fb->common.framebuffer_height);
-<<<<<<< HEAD
-}
-
-// MADT Parsing
-void* parse_MADT(uint8_t entry_id, uint8_t count)
-{
-	struct ACPISDTHeader* madt = (struct ACPISDTHeader*) get_sdt_by_signature("APIC");
-	
-	uint16_t offset = sizeof(struct ACPISDTHeader) + 8; // The +8 is for the 8 bytes of other data here
-	uint8_t* mem_p = (uint8_t*) ((uint32_t) madt + offset);
-	uint8_t found_count = 0;
-	while (offset <= madt->Length) {
-		struct MADTEntryHead* entry_head = (struct MADTEntryHead*) mem_p;
-		if (entry_head->EntryType == entry_id) {
-			found_count++;
-			if (found_count == count)
-				return (void*)(mem_p + 2);
-		}
-		offset+=entry_head->Length;
-	mem_p+=entry_head->Length;
-	}
-	
-	logf("MADT entry with id %d NOT FOUND!\n", entry_id);
-	return NULL;	
-=======
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 }
 
 // ACPI TABLES BALONEY
@@ -149,11 +123,6 @@ void init_rsdt_v1()
 	// Super weird hack to get the struct for the RSDP
 	struct RSDPDescriptor* rsdp_d = (struct RSDPDescriptor*) old_acpi->rsdp;
 	logf("RSDP Found at %x\n", rsdp_d->RsdtAddress);
-<<<<<<< HEAD
-	if (validate_RSDP((char *) rsdp_d, sizeof(rsdp_d))) {
-		logf("RSDP NOT VALIDATED >><< \n");
-		return;
-=======
 	logf("RSDP Revision %x\n", rsdp_d->Checksum);
 	if (rsdp_d->Revision >= 2) {
 		if (!validate_table((struct ACPISDTHeader *) rsdp_d)) {
@@ -166,7 +135,6 @@ void init_rsdt_v1()
 			panic("RSDP NOT VALIDATED >><< \n");
 			return;
 		}
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	}
 	// Easiest to just identity map here...
 	memory_map(current_vmm->root_pd, (uint32_t*)((uint32_t)rsdp_d->RsdtAddress & ~0xFFF), (uint32_t*)((uint32_t)rsdp_d->RsdtAddress & ~0xFFF), 0x1);

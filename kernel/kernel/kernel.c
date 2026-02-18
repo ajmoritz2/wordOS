@@ -259,19 +259,11 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	set_current_vmm(kvmm);
 	// Do everything you want with the multiboot tags before this point. Past here it will be overwritten.	
 	init_heap();
-<<<<<<< HEAD
-
-	init_apic(kvmm);
-	
-	panic("STOP\n");
-
-=======
 	cache_tables();
 
 	init_apic(kvmm);
 
 	set_initial_lapic_timer_count(0); // Disable timer for now 
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	// From here forward we should start PAE...
 	init_pae(kvmm);
 	init_framebuffer();
@@ -281,10 +273,7 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 
 
 	init_font();
-<<<<<<< HEAD
-=======
 	init_terminal();
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	// Can use text now!
 
 	logf("KERNEL STARTING LOC: %x KERNEL ENDING LOC: %x SIZE: %x\n", &_kernel_start, &_kernel_end, kernel_size); 
@@ -297,6 +286,7 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	printf("Found %x cores on the cpu\n", madt_counts.lapic); 
 
 	printf("Starting terminal...\n");
+	printf("%t30 HELP MEEEEE \n");
 	set_initial_lapic_timer_count(0); // Disable timer for now 
 	init_scheduler();
 	start_terminal();
@@ -304,11 +294,6 @@ void kernel_main(uintptr_t *entry_pd, uint32_t multiboot_loc)
 	set_initial_lapic_timer_count(0xff000); // Quantum of time for scheduling
 	
 	asm ("int $0x30");
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 8fae1a042b331c7b5acb0b428159f7ae1710921f
 	log_to_serial("\nPROGRAM TO HALT! \n");
 
 }
