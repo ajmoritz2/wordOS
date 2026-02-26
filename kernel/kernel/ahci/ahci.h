@@ -256,5 +256,8 @@ volatile struct FIS_DMA_D2H {
 void init_ahci_controller();
 void handle_ahci_interrupt();
 
+void ahci_write(uint64_t lba, uint32_t count, uint32_t *buffer);
+void ahci_read(uint64_t lba, uint32_t count, uint32_t *buffer);
+
 static inline uint32_t ata_disk_size(struct ahci_ram_ports *port);
 #endif

@@ -90,7 +90,7 @@ void stack_trace()
 	uint32_t func_num = 0;
 	while (ebp) {
 		
-		//printf("Function (%x) at: %x\n", *(ebp + 1), 1);
+		printf("Function (%x) at: %x\n", *(ebp + 1), 1);
 
 		ebp = (uint32_t *) (*ebp);
 	}
@@ -144,7 +144,7 @@ uint8_t exc_print(struct isr_frame *frame)
 			stack_trace();
 			printf("Memory fault encountered! %x\n", frame->cr2);
 
-			logf("EAX: %x, EBX: %x, ECX: %x, \nEDX: %x, EDI: %x, ESP: %x, \nCR3: %x, CR2: %x, CR0: %x, \nEIP: %x, CS: %x, EFLAGS: %x\n", \
+			printf("CORE:\nEAX: %x, EBX: %x, ECX: %x, \nEDX: %x, EDI: %x, ESP: %x, \nCR3: %x, CR2: %x, CR0: %x, \nEIP: %x, CS: %x, EFLAGS: %x\n", \
 				frame->eax, frame->ebx, frame->ecx, frame->edx, frame->edi, frame->esp, frame->cr3, frame->cr2, \
 	   			frame->cr0, frame->eip, frame->cs, frame->eflags);	   
 			code = handle_exception(frame);

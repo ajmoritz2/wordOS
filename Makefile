@@ -34,6 +34,7 @@ OBJS+=\
 	 $(DRIVERDIR)/ps2.o		\
 	 $(KERNELDIR)/pci.o		\
 	 $(KERNELDIR)/scheduler.o \
+	 $(DRIVERDIR)/fs/vfat.o \
 
 include kernel/programs/local.mk
 include kernel/utils/utils.mk

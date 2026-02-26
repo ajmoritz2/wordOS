@@ -28,11 +28,9 @@ void handle_device(struct PCIDevType0 *header)
 		if (header->header.SubClass == 0x6) {
 			printf("SATA IDENTIFIED\n");
 			if (header->header.ProgIF == 0x1) {
-				printf("AHCI Controller HOORAYY!!!!\n");
-				printf("Has ABAR: %x\n", header->BAR5 & ~0x3ff);
 				AHCIAddr = header;
 			} else {
-				printf("ProgIF Found: %x\n", header->header.ProgIF);
+				// Wrong PROGIF found
 			}
 		}
 	}
@@ -56,6 +54,7 @@ void ahci_action()
 		if (cap_pointer->CapID == 0x5) {
 			msi_pointer = (struct PCIMSI32Header *) cap_pointer;
 			logf("MSI Found!\n");
+			printf("MSI here %x\n", msi_pointer);
 			break;
 		}
 		cap_pointer = (struct PCICapability *) ((uint32_t) base + cap_pointer->Next);
@@ -104,18 +103,13 @@ void brute_force(struct MMECS *config, int bus)
 			pae_unmap((uint32_t *) (base_virt - 4096));
 			continue;	
 		}
-		printf("\nVendor ID: %x Device ID: %x, Class Code: %x, SubClass: %x\n", header->VendorId, header->DeviceId, header->ClassCode
-					, header->SubClass);
+
 		if (header->HeaderType != 0) {
-			printf("PCI - PCI Connection\n");
 			struct PCIDevType1 *pci_con = (struct PCIDevType1 *) header;
 			if (pci_con->SecondaryBusNum == 0) {
-				printf("Connection does not connect!\n");
 				continue;
 			} else {
-				printf("Continueing with bus %x\n", pci_con->SecondaryBusNum);
 				brute_force(config, pci_con->SecondaryBusNum);
-				printf("Disconnected from bus %x\n", pci_con->SecondaryBusNum);
 			}
 		} else {
 			handle_device((struct PCIDevType0 *) header);
@@ -136,5 +130,6 @@ void test_pci()
 
 	ahci_action();
 	init_ahci_controller();
+	printf("AHCI Controller [%t30OK!%t10]\n");
 //	panic("Done with PCI");
 }
